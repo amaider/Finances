@@ -1,5 +1,5 @@
-// 12.11.23, Swift 5.0, macOS 14.0, Xcode 12.4
-// Copyright © __YEAR__ amaider. All rights reserved.
+// 12.11.23, Swift 5.0, macOS 14.0, Xcode 15.0.1
+// Copyright © 2023 amaider. All rights reserved.
 
 import SwiftUI
 
@@ -7,7 +7,10 @@ import SwiftUI
 struct FinancesApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+             FirstView()
+                .monospaced()
         }
+        .modelContainer(for: Transaction.self)
+//        .modelContainer(for: Transaction.self, inMemory: false, isAutosaveEnabled: true, isUndoEnabled: true)
     }
 }
