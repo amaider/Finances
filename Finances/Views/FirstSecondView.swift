@@ -30,6 +30,13 @@ struct FirstSecondView: View {
             ForEach(transactions, content: { transaction in
                 TransactionRowViewSmall(transaction: transaction, isSelected: false)
                     .contentShape(Rectangle())
+                    .contextMenu(menuItems: {
+                        Button("Edit", systemImage: "square.and.pencil", action: {})
+                        Button("Duplicate", systemImage: "doc.on.doc.fill", action: { transaction.duplicate() })
+                        Button("Delete", systemImage: "trash", role: .destructive, action: { transaction.deleteOtherRelationships() })
+                    }, preview: {
+                        Text("TODO receiptView")
+                    })
             })
         })
         .listStyle(.plain)
@@ -38,6 +45,7 @@ struct FirstSecondView: View {
                 ContentUnavailableView("No Transactions", systemImage: "doc.richtext")
             }
         })
+        // Text("Summe")
     }
 }
 

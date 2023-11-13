@@ -42,6 +42,73 @@ import SwiftUI
         self.note = note
     }
     
+    // create "local" transaction with all new relationships
+    // this function looks for existing relationships and replaces them if necessarry
+    func add(modelContext: ModelContext) {
+        do {
+            let shops: [Shop] = try modelContext.fetch(FetchDescriptor<Shop>())
+            // let shop: Shop = shops.first(where: { $0.name == self.shop?.name }) ?? self.shop ?? Shop(name: "nan")
+            // if !shops.contains(shop) {
+            //     modelContext.insert(shop)
+            // }
+            let categories: [Category] = try modelContext.fetch(FetchDescriptor<Category>())
+            // let category: Category = categories.first(where: { $0.name == self.category?.name }) ?? self.category ?? Category(name: "nan")
+            // if !categories.contains(category) {
+            //     modelContext.insert(category)
+            // }
+            
+            // let transaction: Transaction = .init(shop: shop, date: self.date, amount: self.amount, category: category, note: self.note)
+//             category.transactions.append(transaction)
+//             shop.transactions.append(transaction)
+            print(shops.count, categories.count)
+            modelContext.insert(self)
+        } catch {
+            fatalError("lol fuck me 123 \(error.localizedDescription)")
+        }
+    }
+    
+    func duplicate() {
+        guard let context = self.modelContext else { return }
+        
+        let transaction: Transaction = .init(shop: self.shop, date: self.date, amount: self.amount, category: self.category)
+//        self.shop?.transactions.append(transaction)
+//        self.category?.transactions.append(transaction)
+        context.insert(transaction)
+    }
+    
+    // users can only delete transactions, so delete from other @Models as well
+    func deleteOtherRelationships() {
+        // delete transaction from modelContext
+        guard let context = self.modelContext else { return }
+        context.delete(self)
+        
+        
+        // replace these with @Relationship(deleteRules:) ?
+        if let shop: Shop = self.shop {
+            // delete from shop
+            shop.transactions.removeAll(where: { $0 === self })
+            // delete shop if empty
+            if shop.transactions.isEmpty { context.delete(shop) }
+        }
+        if let category: Category = self.category {
+            // delete from category
+            category.transactions.removeAll(where: { $0 === self })
+            // delete category if empty
+            if category.transactions.isEmpty { context.delete(category) }
+        }
+        // for item in self.items ?? [] {
+        //     // delete from item
+        //     item.transactions.removeAll(where: { $0 === self })
+        //     // delete item if empty
+        //     if item.transactions.isEmpty { context.delete(item) }
+        // }
+        // for document in self.documents ?? [] {
+        //     // delete from document
+        //     document.self = nil
+        //     context.delete(document)
+        // }
+    }
+    
     // users can only delete transactions, so delete from other @Models as well
     static func deleteOtherRelationships(_ transaction: Transaction) {
         // delete transaction from modelContext
