@@ -30,6 +30,7 @@
 		F9123FF52B00E0D3004FB3C0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F9123FF72B00E0D3004FB3C0 /* Finances.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Finances.entitlements; sourceTree = "<group>"; };
 		F9123FF92B00E0D3004FB3C0 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		F9B2F08E2B03D9980091AD2B /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		F9D8A9972B00E273001C2B32 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		F9D8A9982B00E2F9001C2B32 /* FirstView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstView.swift; sourceTree = "<group>"; };
 		F9D8A99A2B00E316001C2B32 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
@@ -57,6 +58,7 @@
 		F9123FE52B00E0D0004FB3C0 = {
 			isa = PBXGroup;
 			children = (
+				F9B2F08E2B03D9980091AD2B /* .gitignore */,
 				F9D8A9972B00E273001C2B32 /* README.md */,
 				F9123FF02B00E0D1004FB3C0 /* Finances */,
 				F9123FEF2B00E0D0004FB3C0 /* Products */,
