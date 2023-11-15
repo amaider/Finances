@@ -28,15 +28,21 @@ struct FirstSecondView: View {
     var body: some View {
         List(content: {
             ForEach(transactions, content: { transaction in
-                TransactionRowViewSmall(transaction: transaction, isSelected: false)
-                    .contentShape(Rectangle())
-                    .contextMenu(menuItems: {
-                        Button("Edit", systemImage: "square.and.pencil", action: {})
-                        Button("Duplicate", systemImage: "doc.on.doc.fill", action: { transaction.duplicate() })
-                        Button("Delete", systemImage: "trash", role: .destructive, action: { transaction.deleteOtherRelationships() })
-                    }, preview: {
-                        Text("TODO receiptView")
-                    })
+                NavigationLink(destination: {
+                    TransactionDetailView(transaction: transaction)
+                }, label: {
+                    TransactionRowViewSmall(transaction: transaction, isSelected: false)
+                        .contentShape(Rectangle())
+                        .contextMenu(menuItems: {
+                            NavigationLink(destination: {
+                                TransactionEditSheet(transaction: transaction)
+                            }, label: { Label("Edit", systemImage: "square.and.pencil")})
+                            Button("Duplicate", systemImage: "doc.on.doc.fill", action: { transaction.duplicate() })
+                            Button("Delete", systemImage: "trash", role: .destructive, action: { transaction.deleteOtherRelationships() })
+                        }, preview: {
+                            ReceiptView(transaction: transaction)
+                        })
+                })
             })
         })
         .listStyle(.plain)

@@ -5,30 +5,65 @@ import SwiftUI
 import SwiftData
 
 struct TransactionDetailView: View {
+    @Environment(\.dismiss) var dismiss
+    
     let transaction: Transaction
     
+    @State private var showEditSheet: Bool = false
+    
     var body: some View {
-        NavigationView(content: {
-            Form(content: {
-                Text(transaction.shop?.name ?? "No Shop")
-                    .font(.title)
-                    .bold()
-                Text(transaction.shop?.location ?? "No Location")
-                    .foregroundStyle(.gray)
+        ScrollView(content: {
+            ReceiptView(transaction: transaction)
+            
+            // MARK: Documents
+            GroupBox(content: {
+                ScrollView(.horizontal, content: {
+                    HStack(content: {
+                        ForEach(0...2, id: \.self, content: {
+                            Text("Doc\($0)")
+                                .aspectRatio(2, contentMode: .fit)
+                                .frame(width: 50, height: 100)
+                                .contextMenu(ContextMenu(menuItems: {
+                                    Text("Delete")
+                                    Text("Share")
+                                }))
+                                .background(.red.opacity(0.3))
+                        })
+                    })
+                })
+            }, label: {
                 
             })
-            .formStyle(.columns)
-        })
-        .navigationTitle("Details")
-        #if os(iOS)
-        .navigationBarTitleDisplayMode(.inline)
-        #endif
-        .toolbar(content: {
-            #if os(iOS)
-            ToolbarItem(placement: .topBarTrailing, content: {
-                Button("Edit", action: {})
+            
+            // MARK: Note
+            GroupBox(content: {
+                LabeledContent(content: {
+                    Image(systemName: "tag")
+                }, label: {
+                    Text(transaction.category?.name ?? "no category")
+                })
+                
+                if let note: String = transaction.note {
+                    Divider()
+                    Text(note)
+                }
             })
-            #endif
+        })
+        .padding(.horizontal)
+        .navigationTitle("Details")
+#if os(iOS)
+        .navigationBarTitleDisplayMode(.inline)
+#endif
+        .toolbar(content: {
+            ToolbarItem(placement: .topBarTrailing, content: {
+                Button("Edit", action: { showEditSheet.toggle() })
+            })
+        })
+        .onChange(of: transaction.isDeleted, {
+            if $1 { dismiss() }
+        })
+        .sheet(isPresented: $showEditSheet, content: {
+            TransactionEditSheet(transaction: transaction)
         })
     }
 }

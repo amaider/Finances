@@ -4,11 +4,64 @@
 import SwiftUI
 
 struct ReceiptView: View {
+    let transaction: Transaction
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        GroupBox(content: {
+            VStack(spacing: 3, content: {
+                Text(transaction.shop?.name ?? "nan")
+                    .font(.title)
+                    .bold()
+                
+                if let location: String = transaction.shop?.location {
+                    Text(location)
+                        .font(.subheadline)
+                }
+                
+                Text(transaction.date.formatted(.dateTime.year().month().day()))
+                    .foregroundStyle(.gray)
+                
+                // one empty line of space
+                Text("")
+                
+                // MARK: Items
+                // if transaction.items == nil || transaction.items?.isEmpty ?? true {
+                HStack(content: {
+                    Text("No Items")
+                        .opacity(0.5)
+                    Spacer()
+                })
+                // } else {
+                //     Grid(content: {
+                //         ForEach(transaction.items ?? [], content: { item in
+                //             GridRow(content: {
+                //                 Text(item.name).gridColumnAlignment(.leading)
+                //                 Spacer()
+                //                 Text(item.volume).opacity(0.6).gridColumnAlignment(.trailing)
+                //                 Text(Double(item.amount) / 100.0, format: .currency(code: "EUR")).gridColumnAlignment(.trailing)
+                //             })
+                //         })
+                //     })
+                //     .font(.pSectionBody)
+                // }
+                
+                Divider()
+                Divider()
+                
+                HStack(alignment: .lastTextBaseline, content: {
+                    Text("Total")
+                    Spacer()
+                    Text(Double(transaction.amount) / 100.0, format: .currency(code: "EUR"))
+                })
+                .lineLimit(1)
+                .font(.title2)
+                .bold()
+            })
+        })
+//        .monospaced()
     }
 }
 
 #Preview {
-    ReceiptView()
+    ReceiptView(transaction: Transaction.example())
 }

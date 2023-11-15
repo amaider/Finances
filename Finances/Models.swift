@@ -8,6 +8,7 @@ import SwiftUI
     var shop: Shop?
     var date: Date
     var amount: Int
+//    var amount: Int { items.reduce($0, $1.amount) }
     var category: Category?
      // @Relationship(inverse: \Item.transactions) var items: [Item]?
     // var documents: [Document]?
@@ -74,6 +75,39 @@ import SwiftUI
 //        self.shop?.transactions.append(transaction)
 //        self.category?.transactions.append(transaction)
         context.insert(transaction)
+    }
+    
+    func update(with newTransaction: Transaction) {
+        if self.shop?.name != newTransaction.shop?.name {
+            // save old shop for late so we can delete old shop if empty
+            let oldShop: Shop? = self.shop
+            
+            // find new shop
+            let shops: [Shop]? = try? self.modelContext?.fetch(FetchDescriptor<Shop>())
+            let shop: Shop = shops?.first(where: { $0.name == newTransaction.shop?.name }) ?? Shop(name: newTransaction.shop?.name ?? "Nan")
+            if !(shops?.contains(shop) ?? false) { self.modelContext?.insert(shop) }
+            
+            self.shop = shop
+            oldShop?.delete()
+        }
+        
+        self.date = newTransaction.date
+        self.amount = newTransaction.amount
+        
+        if self.category?.name != newTransaction.category?.name {
+            // save old category for late so we can delete old category if empty
+            let oldCategory: Category? = self.category
+            
+            // find new category
+            let categories: [Category]? = try? self.modelContext?.fetch(FetchDescriptor<Category>())
+            let category: Category = categories?.first(where: { $0.name == self.category?.name }) ?? Category(name: newTransaction.category?.name ?? "Nan")
+            if !(categories?.contains(category) ?? false) { self.modelContext?.insert(category) }
+            
+            self.category = category
+            oldCategory?.delete()
+        }
+        
+        self.note = newTransaction.note
     }
     
     // users can only delete transactions, so delete from other @Models as well
@@ -216,15 +250,13 @@ import SwiftUI
 }
 
 @Model class Document {
-    var name: String
-    var dataType: String
-    @Attribute(.externalStorage) var data: Data
+    var url: URL
+    // @Attribute(.externalStorage) var data: Data
     
     var transaction: Transaction?
     
-    init(name: String, dataType: String, data: Data) {
-        self.name = name
-        self.dataType = dataType
-        self.data = data
+    init(url: URL) {
+        self.url = url
+//        self.data = data
     }
 }
