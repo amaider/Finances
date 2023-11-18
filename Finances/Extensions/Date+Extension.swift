@@ -16,20 +16,20 @@ extension Date {
         return Calendar.current.date(byAdding: DateComponents(month: 1), to: self.startOfMonth())!
     }
     
-    func getPreviousMonth() -> Date? {
-        return Calendar.current.date(byAdding: .month, value: -1, to: self)
+    func getPreviousMonth() -> Date {
+        return Calendar.current.date(byAdding: .month, value: -1, to: self)!
     }
     
-    func getPreviousYear() -> Date? {
-        return Calendar.current.date(byAdding: .year, value: -1, to: self)
+    func getPreviousYear() -> Date {
+        return Calendar.current.date(byAdding: .year, value: -1, to: self)!
     }
     
-    func getNextMonth() -> Date? {
-        return Calendar.current.date(byAdding: .month, value: 1, to: self)
+    func getNextMonth() -> Date {
+        return Calendar.current.date(byAdding: .month, value: 1, to: self)!
     }
     
-    func getNextYear() -> Date? {
-        return Calendar.current.date(byAdding: .year, value: 1, to: self)
+    func getNextYear() -> Date {
+        return Calendar.current.date(byAdding: .year, value: 1, to: self)!
     }
     
     func isFirstOfYear() -> Bool {

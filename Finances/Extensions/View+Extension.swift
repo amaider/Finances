@@ -3,19 +3,6 @@
 
 import SwiftUI
 
-// func cardColor(_ shop: String) -> Color {
-//     let shopColorsDict: Dictionary<String, Color> = [
-//         "Rewe" : .red,
-//         "Netto" : .yellow,
-//         "Bäcker" : .cyan,
-//         "Studienkosten": Color.green,
-//         "unity-media": Color.blue,
-//         "aliexpress": Color.red
-//     ]
-//     let result: Color = shopColorsDict[shop] ?? .secondary
-//     return result
-// }
-
 struct View_Previews: PreviewProvider {
     static var previews: some View {
         HStack(content: {
@@ -215,79 +202,14 @@ extension Animation {
     }
 }
 
-// MARK: Color
-/// todo: replacement for primary, secondary?
-public extension Color {
-    //    #if os(macOS)
-    //    static let backgroundColor = Color(NSColor.windowBackgroundColor)
-    //    static let secondaryBackgroundColor = Color(NSColor.controlBackgroundColor)
-    //    #else
-    //    static let backgroundColor = Color(UIColor.systemBackground)
-    //    static let secondaryBackgroundColor = Color(UIColor.secondarySystemBackground)
-    //    #endif
-    
-    func gradientArray(_ count: Int) -> [Color] {
-        let step: Double = 1.0 / Double(count)
-        return (0..<count).map({ i in Color.init(hue: Double(i) * step, saturation: 1, brightness: 1)})
-    }
-    
-    func uint32_t() -> UInt32 {
-        let result: UInt32 = 0
-        
-        let components = self.cgColor?.components
-        // let red = components?[0]
-        // let green = components?[1]
-        // let blue = components?[2]
-        
-        //        result = red << green << blue
-        
-        return result
-    }
-}
-
 #if os(iOS)
-extension UIScreen{
+extension UIScreen {
     static let screenWidth = UIScreen.main.bounds.size.width
     static let screenHeight = UIScreen.main.bounds.size.height
     static let screenSize = UIScreen.main.bounds.size
 }
 #endif
 
-//extension Int {
-//    var isPositive: Bool {
-//        return self > 0 ? true : false
-//    }
-//}
-
-
-// MARK: UI Extensions
-extension Font {
-    // static let : Font = .system(size: 10.0)
-    
-    /// search bar
-    static let searchBar: Font = .title
-    /// dateselection icon fonts
-    static let dateSelectionDate: Font = .footnote
-    static let dateSelectionPrice: Font = .title3
-    
-    static let cardTitle: Font = .title2
-    static let cardSubtitle: Font = .body
-    
-    
-    /// card title and date
-    static let swipeButtons: Font = .body
-    static let pTitle: Font = .title2
-    static let pDate: Font = .subheadline
-    static let pSectionTitle: Font = .body.italic()
-    static let pSectionBody: Font = .subheadline
-    
-    /// graph fonts
-    static let graphAnnotation: Font = .footnote
-    
-    static let font1: Font = Font.custom("Helvetica", size: 12, relativeTo: TextStyle.footnote)
-    
-    
-}
 
 struct UI {
     static let dateSelectionPopoverMaxWidth: Double = 600

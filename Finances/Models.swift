@@ -9,9 +9,11 @@ import SwiftUI
     var date: Date
     var amount: Int
 //    var amount: Int { items.reduce($0, $1.amount) }
+    // @Relationship(inverse: \Item.transactions) 
+    var items: [Item]?
+    // @Relationship(inverse: \Document.transaction)
+    var documents: [Document]?
     var category: Category?
-     // @Relationship(inverse: \Item.transactions) var items: [Item]?
-    // var documents: [Document]?
     var note: String?
     
     @Transient var searchTerms: Set<String> {
@@ -38,8 +40,8 @@ import SwiftUI
         self.date = date
         self.amount = amount
         self.category = category
-        // self.items = items
-        // self.documents = documents
+        self.items = items
+        self.documents = documents
         self.note = note
     }
     
@@ -77,6 +79,15 @@ import SwiftUI
         context.insert(transaction)
     }
     
+    func update2(shop: Shop?, date: Date, amount: Int, category: Category?, items: [Item]?, documents: [Document]?, note: String? = nil) {
+        self.shop = shop
+        self.date = date
+        self.amount = amount
+        self.category = category
+        self.items = items
+        self.documents = documents
+        self.note = note
+    }
     func update(with newTransaction: Transaction) {
         if self.shop?.name != newTransaction.shop?.name {
             // save old shop for late so we can delete old shop if empty
@@ -191,6 +202,7 @@ import SwiftUI
     var transactions: [Transaction] = []
     
     @Transient var color: Color { colorData?.color ?? .primary }
+    @Transient var amount: Int { transactions.reduce(0, { $0 + $1.amount })}
     
     init(name: String, location: String? = nil, colorData: ColorData? = nil) {
         self.name = name
@@ -213,11 +225,10 @@ import SwiftUI
 }
 
 @Model class Category {
-    //   @Attribute(.unique)
     var name: String
-    
-    //    @Relationship(deleteRule: .cascade)
     var transactions: [Transaction] = []
+    
+    @Transient var amount: Int { transactions.reduce(0, { $0 + $1.amount })}
     
     init(name: String) {
         self.name = name
@@ -240,7 +251,7 @@ import SwiftUI
     var volume: String
     var note: String?
     
-    var transactions: [Transaction] = []
+    @Relationship(inverse: \Transaction.items) var transactions: [Transaction] = []
     
     init(name: String, amount: Int, volume: String, note: String?) {
         self.name = name
@@ -253,7 +264,7 @@ import SwiftUI
     var url: URL
     // @Attribute(.externalStorage) var data: Data
     
-    var transaction: Transaction?
+    @Relationship(inverse: \Transaction.documents) var transaction: Transaction?
     
     init(url: URL) {
         self.url = url

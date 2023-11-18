@@ -10,8 +10,6 @@ struct TransactionEditSheet: View {
     @Environment(\.modelContext) var modelContext
     @Environment(\.dismiss) var dismiss
     
-    @Query var documents: [Document]
-    
     let transaction: Transaction
     
     // MARK: Inputs
@@ -83,7 +81,7 @@ struct TransactionEditSheet: View {
                 
                 Section(content: {
                     ForEach(documentsInput, content: { document in
-                        // DocumentRowView(url: document.url)
+                        DocumentRowView(url: document.url)
                     })
                     HStack(spacing: 5, content: {
                         Image(systemName: "plus.circle")
@@ -137,15 +135,51 @@ struct TransactionEditSheet: View {
     }
     
     private func updateTransaction() {
-        let shop: Shop = Shop(name: shopInput, location: locationInput.isEmpty ? nil : locationInput)
-        let category: Category = Category(name: categoryInput)
+        let shops: [Shop]? = try? transaction.modelContext?.fetch(FetchDescriptor<Shop>())
+        let shop: Shop = shops?.first(where: { $0.name == shopInput }) ?? Shop(name: shopInput)
+//        if !(shops?.contains(shop) ?? false) { transaction.modelContext?.insert(shop) }
+        transaction.shop = shop
         
-        let newTransaction: Transaction = .init(shop: shop, date: dateInput, amount: amountInput, category: category)
-        transaction.update(with: newTransaction)
+        let categories: [Category]? = try? transaction.modelContext?.fetch(FetchDescriptor<Category>())
+        let category: Category = categories?.first(where: { $0.name == categoryInput }) ?? Category(name: categoryInput)
+        transaction.category = category
+        
+        transaction.date = dateInput
+        transaction.amount = amountInput
+        transaction.note = noteInput.isEmpty ? nil : noteInput
+        
+        transaction.documents = []
+        transaction.items = []
+        
+        
+        
+        // if transaction.shop?.name != shopInput {
+        //     // save old shop for late so we can delete old shop if empty
+        //     let oldShop: Shop? = transaction.shop
+        //     
+        //     // find new shop
+        //     let shops: [Shop]? = try? transaction.modelContext?.fetch(FetchDescriptor<Shop>())
+        //     let shop: Shop = shops?.first(where: { $0.name == shopInput }) ?? Shop(name: shopInput)
+        //     if !(shops?.contains(shop) ?? false) { transaction.modelContext?.insert(shop) }
+        //     
+        //     transaction.shop = shop
+        //     oldShop?.delete()
+        // }
+        
+         // let shop: Shop = Shop(name: shopInput)
+         // transaction.update2(shop: nil, date: dateInput, amount: amountInput, category: nil, note: noteInput)
+        
+        // let shop: Shop = Shop(name: shopInput, location: locationInput.isEmpty ? nil : locationInput)
+        // let category: Category = Category(name: categoryInput)
+        // let newTransaction: Transaction = .init(shop: shop, date: dateInput, amount: amountInput, category: category)
+        // transaction.update(with: newTransaction)
+        
+        dismiss()
     }
     
     private func deleteTransaction() {
         transaction.deleteOtherRelationships()
+        dismiss()
     }
     
     private func fileImporterCompletion(_ result: Result<URL, any Error>) {

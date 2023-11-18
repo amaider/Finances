@@ -40,12 +40,13 @@ struct TransactionRowViewSmall: View {
     let transaction: Transaction
     let isSelected: Bool
     
-    var color1: Color { transaction.shop!.color.opacity(isSelected ? 1.0 : 0.2) }
-    var color2: Color { isSelected ? transaction.shop!.color.isDark ? .white : .black : transaction.shop!.color }
+    var transactionColor: Color { transaction.shop?.color ?? .primary }
+    var color1: Color { transactionColor.opacity(isSelected ? 1.0 : 0.2) }
+    var color2: Color { isSelected ? transactionColor.isDark ? .white : .black : transactionColor }
     
     var body: some View {
         HStack(alignment: .center, spacing: 3, content: {
-            transaction.shop!.color
+            transactionColor
                 .frame(width: 3)
             
             Text(transaction.date.formatted(.dateTime.day(.twoDigits)))
@@ -56,18 +57,18 @@ struct TransactionRowViewSmall: View {
            // Divider()
            //     .font(.caption2)
             
-            Text(transaction.shop!.name)
+            Text(transaction.shop?.name ?? "no Shop")
                 .foregroundColor(color2)
             
             Spacer()
             
             Group(content: {
-                // if purchase.items != nil {
-                //     Image(systemName: "list.bullet")
-                // }
-                // if purchase.documents != nil {
-                //     Image(systemName: "paperclip")
-                // }
+                if !(transaction.items?.isEmpty ?? false) {
+                    Image(systemName: "list.bullet")
+                }
+                if !(transaction.documents?.isEmpty ?? false) {
+                    Image(systemName: "paperclip")
+                }
                 if transaction.note != nil {
                     Image(systemName: "note.text")
                 }
@@ -86,6 +87,16 @@ struct TransactionRowViewSmall: View {
         // .font(.title2)
         .lineLimit(1)
 //        .cardView(transaction.shop!.color.opacity(0.2))
+        // .contentShape(Rectangle())
+        .contextMenu(menuItems: {
+            NavigationLink(destination: {
+                TransactionEditSheet(transaction: transaction)
+            }, label: { Label("Edit", systemImage: "square.and.pencil")})
+            Button("Duplicate", systemImage: "doc.on.doc.fill", action: { transaction.duplicate() })
+            Button("Delete", systemImage: "trash", role: .destructive, action: { transaction.deleteOtherRelationships() })
+        }, preview: {
+            ReceiptView(transaction: transaction)
+        })
     }
 }
 

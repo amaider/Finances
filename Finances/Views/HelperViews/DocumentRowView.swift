@@ -2,67 +2,58 @@
 // Copyright © 2023 amaider. All rights reserved.
 
 import SwiftUI
-import UniformTypeIdentifiers
-import QuickLookThumbnailing
+import QuickLook
 
 struct DocumentRowView: View {
     let url: URL
+    
+    @State private var quickLookURL: URL?
     @State private var thumbnail: CGImage? = nil
+    @State private var showQuickLook: Bool = false
     
     var body: some View {
         HStack(content: {
             if let thumbnail: CGImage = thumbnail {
-                Image(thumbnail, scale: 1.0, label: Text("url.lastPathComponent"))
+                Image(thumbnail, scale: 1.0, label: Text(url.lastPathComponent))
+                    .resizable()
+                    .scaledToFit()
             } else {
-                Image(systemName: fileTypeImage(for: url))
-                    // .onAppear(perform: generateThumbnail)
+                Image(systemName: "doc.fill")
+                    .resizable()
+                    .scaledToFit()
             }
             
-            VStack(alignment: .leading, content: {
-                Text(url.lastPathComponent)
-                Text("fileSize kB")
-                    .font(.subheadline)
-            })
+           VStack(alignment: .leading, content: {
+               Text(url.lastPathComponent)
+               Text("\((try? url.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0) kB")
+                  .font(.footnote)
+           })
             
         })
+        // .frame(height: 100)
+        .onAppear(perform: generateThumbnail)
+        .onTapGesture(perform: {
+            if quickLookURL != nil { quickLookURL = nil }
+            else { quickLookURL = url }
+        })
+        .quickLookPreview($quickLookURL)
     }
     
-    private func fileTypeImage(for url: URL) -> String {
-        let typeIdentifier = UTType(filenameExtension: url.pathExtension)?.preferredMIMEType ?? ""
+    func generateThumbnail() {
+        let size: CGSize = CGSize(width: 200, height: 200)
+        let scale: CGFloat = 1.0
         
-        switch typeIdentifier {
-            case "public.image":
-                return "photo"
-            case "public.text":
-                return "doc.text"
-            case "public.pdf":
-                return "doc.text"
-            case "com.apple.iwork.pages.pages":
-                return "doc.text"
-            default:
-                return "questionmark"
-        }
-    }
-    
-    private func generateThumbnail() {
-        let size: CGSize = CGSize(width: 100, height: 100)
-        let scale: CGFloat = UIScreen.main.scale
-        let request: QLThumbnailGenerator.Request = QLThumbnailGenerator.Request(fileAt: url, size: size, scale: scale, representationTypes: .lowQualityThumbnail)
-        request.iconMode = true
-        let generator = QLThumbnailGenerator.shared
+        let request = QLThumbnailGenerator.Request(fileAt: url, size: size, scale: scale, representationTypes: .all)
         
-        generator.generateRepresentations(for: request) { (thumbnail, type, error) in
-            DispatchQueue.main.async {
+        QLThumbnailGenerator.shared.generateRepresentations(for: request,update: { (thumbnail, type, error) in
+            DispatchQueue.main.async(execute: {
                 if thumbnail == nil || error != nil {
-                    print("fuck")
-                    // assert(false, "Thumbnail failed to generate")
+                    NSLog("Error creating thumbnail \(error?.localizedDescription ?? "")")
                 } else {
-                    DispatchQueue.main.async {
-                        self.thumbnail = thumbnail!.cgImage
-                    }
+                    self.thumbnail = thumbnail?.cgImage
                 }
-            }
-        }
+            })
+        })
     }
 }
 

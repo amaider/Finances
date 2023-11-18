@@ -5,12 +5,30 @@ import SwiftUI
 
 @main
 struct FinancesApp: App {
+    @State var navPath: NavigationPath = .init()
+    @State var troll: Bool = true
+    
     var body: some Scene {
         WindowGroup {
-             FirstView()
+            NavigationStack(path: $navPath, root: {
+                SideBarView()
+                    .navigationDestination(isPresented: $troll, destination: {
+                        TransactionsView()
+                    })
+            })
+             // NavigationSplitView(sidebar: {
+             // }, content: {
+             //     TransactionsView()
+             // }, detail: {
+             //     Text("Detail")
+             // })
                 .monospaced()
         }
-        .modelContainer(for: Transaction.self)
+        .modelContainer(for: [Transaction.self, Document.self, Item.self])
 //        .modelContainer(for: Transaction.self, inMemory: false, isAutosaveEnabled: true, isUndoEnabled: true)
     }
+}
+
+enum ViewPane {
+    
 }
