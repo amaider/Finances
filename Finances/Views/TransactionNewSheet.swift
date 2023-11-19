@@ -8,7 +8,7 @@ import SwiftData
 struct TransactionNewSheet: View {
     @Environment(\.modelContext) var modelContext
     @Environment(\.dismiss) var dismiss
-    @Query var categories: [Category]
+    @Query(sort: \Category.name) var categories: [Category]
     
     var transaction: Transaction?
     
@@ -21,8 +21,7 @@ struct TransactionNewSheet: View {
     @State var categoryInput: Category
     @State var noteInput: String = ""
     
-    var amountInput: Decimal { itemsInput.reduce(Decimal(0), { $0 + $1.amount }) }
-    
+    @FocusState private var currFocus: FocusableFields?
     @State private var filePickerIsPresented: Bool = false
     
     init(transaction: Transaction?) {
@@ -39,11 +38,11 @@ struct TransactionNewSheet: View {
     var body: some View {
         Form(content: {
             Section(content: {
-                TextField("Shop", text: $shopInput)
-                TextField("Location", text: $locationInput)
+                TextField("Shop", text: $shopInput).focused($currFocus, equals: .shopName)
+                TextField("Location", text: $locationInput).focused($currFocus, equals: .shopLocation)
             })
             
-            DatePicker("Date", selection: $dateInput, displayedComponents: .date)
+            DatePicker("Date", selection: $dateInput, displayedComponents: .date).focusable().focused($currFocus, equals: .date)
             
             Section(content: {
                 List(content: {
@@ -59,10 +58,11 @@ struct TransactionNewSheet: View {
                 NavigationLink("Add Item", destination: {
                     ItemEditView(item: nil, itemsInput: $itemsInput)
                 })
+                .focused($currFocus, equals: .itemAdd)
             }, header: {
                 HStack(content: {
                     Text("Items")
-                    Text(amountInput, format: .currency(code: "EUR"))
+                    Text(itemsInput.reduce(Decimal(0), { $0 + $1.amount }), format: .currency(code: "EUR"))
                 })
             })
             
@@ -78,6 +78,7 @@ struct TransactionNewSheet: View {
                 .clipShape(Rectangle())
                 .onTapGesture(perform: { filePickerIsPresented.toggle() })
                 .fileImporter(isPresented: $filePickerIsPresented, allowedContentTypes: [.content], onCompletion: fileImporterCompletion)
+//                .focused($currFocus, equals: .documentAdd)
             })
             
             Section(content: {
@@ -86,13 +87,15 @@ struct TransactionNewSheet: View {
                         Text(category.name).tag(category)
                     })
                 })
+                .focused($currFocus, equals: .categoryPicker)
                 .onAppear(perform: {
-                    guard let category: Category = categories.first(where: { $0.name == "none" }) ?? categories.first else { return }
+                    guard let category: Category = categories.first(where: { $0.name == transaction?.category?.name }) ?? categories.first else { return }
                     categoryInput = category
                 })
                 TextField("Notes", text: $noteInput, prompt: Text("Notes"), axis: .vertical)
                     .frame(height: 100)
                     .background(.red.opacity(0.3))
+                    .focused($currFocus, equals: .notes)
             })
             
             Section(content: {
@@ -102,19 +105,33 @@ struct TransactionNewSheet: View {
         })
         .toolbar(content: {
             ToolbarItem(placement: .topBarLeading, content: {
-                Button("Dancel", action: { dismiss() })
+                Button("Cancel", action: { dismiss() })
+                    .focusedButton($currFocus, equals: .cancel)
             })
             ToolbarItem(placement: .topBarTrailing, content: {
                 Button("Save", action: saveTransaction)
                     .disabled(shopInput.isEmpty)
+                    .focusedButton($currFocus, equals: .enter)
             })
         })
+        .onAppear(perform: {
+            if shopInput.isEmpty { currFocus = .shopName }
+        })
+        .onSubmit({
+            print(" oldFocus: \(currFocus)")
+            switch currFocus {
+                default: currFocus?.next()
+            }
+        })
+        .onChange(of: currFocus, { print("currFocus: \($0) -> \($1)") })
         .navigationTitle(transaction == nil ? "Transaction" : "Edit")
 #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
 #endif
     }
     
+    
+    // MARK: Functions
     private func fileImporterCompletion(_ result: Result<URL, any Error>) {
         switch result {
             case .success(let url):
@@ -136,14 +153,14 @@ struct TransactionNewSheet: View {
     
     private func saveTransaction() {
         if transaction == nil {
-            let transaction: Transaction = .init(shop: nil, date: dateInput, amount: Decimal(0), items: [], documents: [], category: nil, note: noteInput, searchTerms: [])
+            let transaction: Transaction = .init(shop: nil, date: dateInput, amount: Decimal(0), items: [], documents: [], category: nil, note: noteInput, searchTerms: "")
             modelContext.insert(transaction)
             
             itemsInput.forEach({ transaction.items?.append(Item(name: $0.name, note: $0.note, volume: $0.volume, amount: $0.amount, transaction: nil, date: dateInput))})
             transaction.amount = transaction.items?.reduce(0, { $0 + $1.amount }) ?? 0
             
             let shops: [Shop]? = try? modelContext.fetch(FetchDescriptor<Shop>())
-            let shop: Shop = shops?.first(where: { $0.name == shopInput}) ?? Shop(name: shopInput, location: locationInput, amount: Decimal(0))
+            let shop: Shop = shops?.first(where: { $0.name == shopInput}) ?? Shop(name: shopInput, location: locationInput, color: nil, amount: Decimal(0))
             shop.amount += transaction.amount
             transaction.shop = shop
             
@@ -153,7 +170,7 @@ struct TransactionNewSheet: View {
             category.amount += transaction.amount
             transaction.category = category
             
-            transaction.searchTerms = getSearchTerms(from: transaction)
+            transaction.searchTerms = getSearchTerms(from: transaction).joined()
         } else {
             transaction?.date = dateInput
             transaction?.note = noteInput
@@ -164,14 +181,15 @@ struct TransactionNewSheet: View {
                 
                 itemsInput.forEach({ transaction?.items?.append(Item(name: $0.name, note: $0.note, volume: $0.volume, amount: $0.amount, transaction: nil, date: dateInput)) })
                 transaction?.amount = transaction?.items?.reduce(0, { $0 + $1.amount }) ?? Decimal(0)
+                print(transaction?.amount)
             }
             
-            if transaction?.shop?.name != shopInput {
+            if transaction?.shop?.name != shopInput || transaction?.shop?.location != locationInput {
                 print("different shop")
                 // transaction?.shop?.delete()
                 
                 let shops: [Shop]? = try? modelContext.fetch(FetchDescriptor<Shop>())
-                let shop: Shop = shops?.first(where: { $0.name == shopInput && $0.location == locationInput }) ?? Shop(name: shopInput, location: locationInput, amount: Decimal(0))
+                let shop: Shop = shops?.first(where: { $0.name == shopInput && $0.location == locationInput }) ?? Shop(name: shopInput, location: locationInput, color: nil, amount: Decimal(0))
                 shop.amount += transaction!.amount
                 transaction?.shop = shop
             }
@@ -188,7 +206,7 @@ struct TransactionNewSheet: View {
                 transaction?.category = category
             }
             
-            transaction?.searchTerms = getSearchTerms(from: transaction!)
+            transaction?.searchTerms = getSearchTerms(from: transaction!).joined()
         }
         
         
@@ -200,6 +218,7 @@ struct TransactionNewSheet: View {
         
         if let shopString = transaction.shop?.name { result.insert(shopString) }
         result.insert(Formatter.dateFormatter.string(from: transaction.date))
+        result.insert(transaction.date.formatted(date: .complete, time: .omitted))
         if let amountString: String = Formatter.currencyFormatter.string(from: transaction.amount as NSDecimalNumber) { result.insert(amountString) }
         if let categoryString: String = transaction.category?.name { result.insert(categoryString) }
         transaction.items?.forEach({
@@ -212,6 +231,16 @@ struct TransactionNewSheet: View {
         transaction.note.split(separator: " ").map(String.init).forEach({ result.insert($0) })
         
         return result.sorted()
+    }
+    
+    // MARK: FocusFields
+    enum FocusableFields: Hashable, CaseIterable {
+        case shopName, shopLocation, date, itemAdd, documentAdd, categoryPicker, notes, enter, cancel
+        
+        mutating func next() {
+            let allCases = type(of: self).allCases
+            self = allCases[(allCases.firstIndex(of: self)! + 1) % allCases.count]
+        }
     }
 }
              

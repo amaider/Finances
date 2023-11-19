@@ -37,6 +37,18 @@ struct ColorData: Codable, Comparable {
     }
 }
 
+public extension Color {
+#if os(macOS)
+    static let background = Color(NSColor.windowBackgroundColor)
+    static let secondaryBackground = Color(NSColor.underPageBackgroundColor)
+    static let tertiaryBackground = Color(NSColor.controlBackgroundColor)
+#else
+    static let background = Color(UIColor.systemBackground)
+    static let secondaryBackground = Color(UIColor.secondarySystemBackground)
+    static let tertiaryBackground = Color(UIColor.tertiarySystemBackground)
+#endif
+}
+
 extension Color: Comparable {
     public static func < (lhs: Color, rhs: Color) -> Bool {
         let lhsResolved = lhs.resolve(in: EnvironmentValues())
@@ -57,16 +69,23 @@ extension Color: Comparable {
         return (0..<count).map({ i in Color.init(hue: Double(i) * step, saturation: 1, brightness: 1)})
     }
     
-    func uint32_t() -> UInt32 {
-        let result: UInt32 = 0
+    var hex: UInt {
+        let resolved = self.resolve(in: EnvironmentValues())
+        /// somehow resolved can contain negative floats for red, green, blue
+        let red = UInt((resolved.red >= 0 ? resolved.red : 0) * 255) << 16
+        let green = UInt((resolved.green >= 0 ? resolved.green : 0) * 255) << 08
+        let blue = UInt((resolved.blue >= 0 ? resolved.blue : 0) * 255)
         
-        let components = self.cgColor?.components
-        // let red = components?[0]
-        // let green = components?[1]
-        // let blue = components?[2]
-        
-        //        result = red << green << blue
-        
-        return result
+        return red | green | blue
+    }
+    
+    init(hex: UInt, alpha: Double = 1) {
+        self.init(
+            .sRGB,
+            red: Double((hex >> 16) & 0xff) / 255,
+            green: Double((hex >> 08) & 0xff) / 255,
+            blue: Double((hex >> 00) & 0xff) / 255,
+            opacity: alpha
+        )
     }
 }

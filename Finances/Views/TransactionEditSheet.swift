@@ -136,7 +136,7 @@ struct TransactionEditSheet: View {
     
     private func updateTransaction() {
         let shops: [Shop]? = try? transaction.modelContext?.fetch(FetchDescriptor<Shop>())
-        let shop: Shop = shops?.first(where: { $0.name == shopInput }) ?? Shop(name: shopInput, location: locationInput, amount: Decimal(0))
+        let shop: Shop = shops?.first(where: { $0.name == shopInput }) ?? Shop(name: shopInput, location: locationInput, color: nil, amount: Decimal(0))
 //        if !(shops?.contains(shop) ?? false) { transaction.modelContext?.insert(shop) }
         transaction.shop = shop
         

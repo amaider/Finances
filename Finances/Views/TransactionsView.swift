@@ -56,21 +56,13 @@ struct TransactionsView: View {
                 ToolbarItemGroup(placement: .principal, content: {
                     Button(action: { showDatePickerPopover.toggle() }, label: {
                         Text(currDate.formatted(.dateTime.year().month()))
-                            .foregroundStyle(.white)
-                            .padding(.vertical, 7)
-                            .padding(.horizontal, 12)
-                            .background(.ultraThinMaterial)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
                     })
+                    .buttonStyle(.bordered)
+                    .foregroundStyle(showDatePickerPopover ? Color.accentColor : Color.primary)
                     .popover(isPresented: $showDatePickerPopover, content: {
-                        HStack(content: {
-                            Button("<", action: { currDate = currDate.getPreviousMonth() })
-                            DatePicker("DatePicker", selection: $currDate, displayedComponents: .date)
-                                .labelsHidden()
-                                .presentationCompactAdaptation(.popover)
-                            Button(">", action: { currDate = currDate.getNextMonth() })
-                        })
-                        .padding(.horizontal)
+                        DatePickerPopover(currDate: $currDate)
+                            .frame(minWidth: 300)
+                            .padding(.horizontal)
                     })
                 })
                 ToolbarItem(placement: .topBarTrailing, content: {

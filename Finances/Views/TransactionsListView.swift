@@ -23,9 +23,9 @@ struct TransactionsListView: View {
                 if searchTerm.isEmpty {
                     return $0.date >= startMonth && $0.date <= endMonth
                 } else {
-                     return $0.shop?.name.localizedStandardContains(searchTerm) ?? false
-                    // return $0.searchTerms.forEach({ return $0.localizedStandardContains(searchTerm)})
-                    // return $0.searchTerms.contains(searchTerm)
+//                     return $0.shop?.name.localizedStandardContains(searchTerm) ?? false
+                    return $0.searchTerms.localizedStandardContains(searchTerm)
+                    // $0.searchTerms.contains(where: { return $0.localizedStandardContains(searchTerm) })
                 }
             },
             sort: descriptors

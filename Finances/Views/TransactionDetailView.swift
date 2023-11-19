@@ -64,6 +64,10 @@ struct TransactionDetailView: View {
                     Text(transaction.note)
                 }
             })
+            
+            GroupBox(content: {
+                Text(transaction.searchTerms)
+            })
         })
         .padding(.horizontal)
         .navigationTitle("Details")

@@ -5,6 +5,7 @@ import SwiftUI
 import SwiftData
 
 @Model class Category {
+    
     var name: String
     
     var transactions: [Transaction]?

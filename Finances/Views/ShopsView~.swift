@@ -105,7 +105,7 @@ struct ShopsListView: View {
                         })
                     }, label: {
                         Text(shop.name).foregroundStyle(shop.color)
-                        if !(shop.location?.isEmpty ?? true) { Text(shop.location!) }
+                        if let location: String = shop.location { Text(location) }
                     })
                 })
             })

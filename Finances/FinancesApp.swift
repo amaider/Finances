@@ -14,7 +14,7 @@ struct FinancesApp: App {
                 SideBarView()
                     .navigationDestination(isPresented: $firstView, destination: {
                         TransactionsView()
-                        // ShopsView()
+//                         ShopsView()
                     })
             })
              // NavigationSplitView(sidebar: {

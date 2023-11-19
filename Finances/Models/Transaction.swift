@@ -35,9 +35,10 @@ import SwiftUI
 //
 //        return result
 //    }
-    var searchTerms: Array<String>
+    var searchTerms: String
     
-    init(shop: Shop?, date: Date, amount: Decimal, items: [Item]?, documents: [Document]?, category: Category?, note: String, searchTerms: Array<String>) {
+    
+    init(shop: Shop?, date: Date, amount: Decimal, items: [Item]?, documents: [Document]?, category: Category?, note: String, searchTerms: String) {
         self.shop = shop
         self.date = date
         self.amount = amount
@@ -48,8 +49,8 @@ import SwiftUI
         self.searchTerms = searchTerms
     }
     
-    // create "local" transaction with all new relationships
-    // this function looks for existing relationships and replaces them if necessarry
+    /// create "local" transaction with all new relationships
+    /// this function looks for existing relationships and replaces them if necessarry
     func add(modelContext: ModelContext) {
         do {
             let shops: [Shop] = try modelContext.fetch(FetchDescriptor<Shop>())
@@ -93,12 +94,12 @@ import SwiftUI
     }
     func update(with newTransaction: Transaction) {
         if self.shop?.name != newTransaction.shop?.name {
-            // save old shop for late so we can delete old shop if empty
+            /// save old shop for late so we can delete old shop if empty
             let oldShop: Shop? = self.shop
             
-            // find new shop
+            /// find new shop
             let shops: [Shop]? = try? self.modelContext?.fetch(FetchDescriptor<Shop>())
-            let shop: Shop = shops?.first(where: { $0.name == newTransaction.shop?.name }) ?? Shop(name: newTransaction.shop?.name ?? "Nan", location: "", amount: Decimal(0))
+            let shop: Shop = shops?.first(where: { $0.name == newTransaction.shop?.name }) ?? Shop(name: newTransaction.shop?.name ?? "Nan", location: "", color: nil, amount: Decimal(0))
             if !(shops?.contains(shop) ?? false) { self.modelContext?.insert(shop) }
             
             self.shop = shop
@@ -124,75 +125,42 @@ import SwiftUI
         self.note = newTransaction.note
     }
     
-    // users can only delete transactions, so delete from other @Models as well
+    /// users can only delete transactions, so delete from other @Models as well
     func deleteOtherRelationships() {
-        // delete transaction from modelContext
+        /// delete transaction from modelContext
         guard let context = self.modelContext else { return }
         context.delete(self)
         
         
-        // replace these with @Relationship(deleteRules:) ?
+        /// replace these with @Relationship(deleteRules:) ?
         if let shop: Shop = self.shop {
-            // delete from shop
+            /// delete from shop
             shop.transactions?.removeAll(where: { $0 === self })
-            // delete shop if empty
+            /// delete shop if empty
             if shop.transactions?.isEmpty ?? true { context.delete(shop) }
         }
         if let category: Category = self.category {
-            // delete from category
+            /// delete from category
             category.transactions?.removeAll(where: { $0 === self })
-            // delete category if empty
+            /// delete category if empty
             if category.transactions?.isEmpty ?? true { context.delete(category) }
         }
         // for item in self.items ?? [] {
-        //     // delete from item
+        //     /// delete from item
         //     item.transactions.removeAll(where: { $0 === self })
-        //     // delete item if empty
+        //     /// delete item if empty
         //     if item.transactions.isEmpty { context.delete(item) }
         // }
         // for document in self.documents ?? [] {
-        //     // delete from document
+        //     /// delete from document
         //     document.self = nil
         //     context.delete(document)
         // }
     }
     
-    // users can only delete transactions, so delete from other @Models as well
-    static func deleteOtherRelationships(_ transaction: Transaction) {
-        // delete transaction from modelContext
-        guard let context = transaction.modelContext else { return }
-        context.delete(transaction)
-        
-        
-        // replace these with @Relationship(deleteRules:) ?
-        if let shop: Shop = transaction.shop {
-            // delete from shop
-            shop.transactions?.removeAll(where: { $0 === transaction })
-            // delete shop if empty
-            if shop.transactions?.isEmpty ?? true { context.delete(shop) }
-        }
-        if let category: Category = transaction.category {
-            // delete from category
-            category.transactions?.removeAll(where: { $0 === transaction })
-            // delete category if empty
-            if category.transactions?.isEmpty ?? true { context.delete(category) }
-        }
-        // for item in transaction.items ?? [] {
-        //     // delete from item
-        //     item.transactions.removeAll(where: { $0 === transaction })
-        //     // delete item if empty
-        //     if item.transactions.isEmpty { context.delete(item) }
-        // }
-        // for document in transaction.documents ?? [] {
-        //     // delete from document
-        //     document.transaction = nil
-        //     context.delete(document)
-        // }
-    }
-    
     static func example() -> Transaction {
-        let transaction: Transaction = .init(shop: nil, date: .now, amount: Decimal(1234), items: nil, documents: nil, category: nil, note: "", searchTerms: [])
-        transaction.shop = .init(name: "Rewe", location: "Mitte", colorData: .init(.red), amount: Decimal(0))
+        let transaction: Transaction = .init(shop: nil, date: .now, amount: Decimal(1234), items: nil, documents: nil, category: nil, note: "", searchTerms: "")
+        transaction.shop = .init(name: "Rewe", location: "Mitte", color: .red, amount: Decimal(0))
         transaction.category = .init(name: "Food", amount: Decimal(0))
         return transaction
     }
