@@ -36,16 +36,17 @@ let previewContainer: ModelContainer = {
                 ]
                 
                 let color: Color? = shopColorsDict[columns[1]]
-                var colorData: ColorData? = color != nil ? .init(color!) : nil
+//                var colorData: ColorData? = color != nil ? .init(color!) : nil
+                let colorData: ColorData = color != nil ? .init(color!) : .init(.primary)
                 
                 let categoryInput: String = shopCategoryDict[columns[1]] ?? "other"
-                let category: Category = Category(name: categoryInput)
+                let category: Category = Category(name: categoryInput, amount: Decimal(0))
                 
-                let shop: Shop = .init(name: columns[1], colorData: colorData)
+                let shop: Shop = .init(name: columns[1], location: "", colorData: colorData, amount: Decimal(0))
                 let date: Date = Formatter.dateFormatter.date(from: columns[0]) ?? .now
-                let amount: Int = Int((Double(columns[3]) ?? 0) * 100) * -1
+                let amount: Decimal = Decimal((Double(columns[3]) ?? 0) * 100) * -1
                 let note: String = [columns[4], columns[6]].joined(separator: "\n")
-                let transaction: Transaction = .init(shop: shop, date: date, amount: amount, category: category, note: note == "\n" ? nil : note)
+                let transaction: Transaction = .init(shop: shop, date: date, amount: amount, items: [], documents: [], category: category, note: note, searchTerms: [])
                 context.insert(transaction)
             }
             

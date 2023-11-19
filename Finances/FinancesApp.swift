@@ -6,14 +6,15 @@ import SwiftUI
 @main
 struct FinancesApp: App {
     @State var navPath: NavigationPath = .init()
-    @State var troll: Bool = true
+    @State var firstView: Bool = true
     
     var body: some Scene {
         WindowGroup {
             NavigationStack(path: $navPath, root: {
                 SideBarView()
-                    .navigationDestination(isPresented: $troll, destination: {
+                    .navigationDestination(isPresented: $firstView, destination: {
                         TransactionsView()
+                        // ShopsView()
                     })
             })
              // NavigationSplitView(sidebar: {
@@ -24,11 +25,7 @@ struct FinancesApp: App {
              // })
                 .monospaced()
         }
-        .modelContainer(for: [Transaction.self, Document.self, Item.self])
+        .modelContainer(for: Transaction.self)
 //        .modelContainer(for: Transaction.self, inMemory: false, isAutosaveEnabled: true, isUndoEnabled: true)
     }
-}
-
-enum ViewPane {
-    
 }

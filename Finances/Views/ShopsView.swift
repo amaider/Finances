@@ -10,7 +10,8 @@ struct ShopsView: View {
     var sortDescriptor: SortDescriptor<Shop> {
         let sortOrder: SortOrder = sortOrder ? .forward : .reverse
         switch sortKeyPathHelper {
-            case 2: return SortDescriptor(\.amount, order: sortOrder)
+            case 2: return SortDescriptor(\.name, order: sortOrder)
+            case 3: return SortDescriptor(\.name, order: sortOrder)
             default: return SortDescriptor(\.name, order: sortOrder)
         }
     }
@@ -26,6 +27,7 @@ struct ShopsView: View {
                         Picker("Sort", selection: $sortKeyPathHelper, content: {
                             Text("Name").tag(1)
                             Text("Amount").tag(2)
+                            Text("Color").tag(3)
                         })
                         Picker("Order", selection: $sortOrder, content: {
                             Text("Forward").tag(true)
@@ -59,31 +61,31 @@ struct ShopsListView: View {
             ForEach(shops, content: { shop in
                 DisclosureGroup(content: {
                     NavigationLink(destination: {
-                        ForEach(shop.transactions, content: { transaction in
-                            NavigationLink(destination: {
-                                TransactionDetailView(transaction: transaction)
-                            }, label: {
-                                TransactionRowViewSmall(transaction: transaction, isSelected: false)
+                        ScrollView(content: {
+                            ForEach(shop.transactions ?? [], content: { transaction in
+                                NavigationLink(destination: {
+                                    TransactionDetailView(transaction: transaction)
+                                }, label: {
+                                    TransactionRowViewSmall(transaction: transaction, isSelected: false)
+                                })
+                                .buttonStyle(.plain)
                             })
-                            .buttonStyle(.plain)
                         })
                     }, label: {
-                        Text("Transactions: \(shop.transactions.count)")
-                        Text("Chart Here")
+                        VStack(content: {
+                            
+                            Text("Transactions: \(shop.transactions?.count ?? 0)")
+                            Text("Chart Here")
+                        })
                     })
                 }, label: {
-                    HStack(content: {
-                        let colorBinding: Binding<Color> = Binding(get: { shop.color }, set: { shop.colorData = .init($0) })
-                        ColorPicker(selection: colorBinding, supportsOpacity: true, label: {
-                            HStack(content: {
-                                Text(shop.name)
-                                    .foregroundStyle(shop.color)
-                                Spacer()
-                                Text(Double(shop.amount) / 100.0, format: .currency(code: "EUR"))
-                                    .foregroundColor(shop.amount > 0 ? .green : .red)
-                                    .shadow(radius: 10)
-                            })
-                        })
+                    LabeledContent(content: {
+                        Text(shop.amount, format: .currency(code: "EUR"))
+                            .foregroundColor(shop.amount > 0 ? .green : .red)
+                            .shadow(radius: 10)
+                    }, label: {
+                        Text(shop.name)
+                            .foregroundStyle(shop.colorData.color)
                     })
                 })
             })

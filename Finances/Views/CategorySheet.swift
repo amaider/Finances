@@ -10,7 +10,7 @@ struct CategorySheet: View {
         let id: UUID = UUID()
         let name: String
         let transactions: [Transaction]
-        var amount: Int { transactions.reduce(0, { $0 + $1.amount}) }
+        var amount: Decimal { transactions.reduce(0, { $0 + $1.amount}) }
     }
     var categories: [CategoryList] {
         let categoryDict = transactions.reduce(into: [String: [Transaction]](), { result, transaction in
@@ -30,7 +30,7 @@ struct CategorySheet: View {
                     HStack(content: {
                         Text(category.name)
                         Spacer()
-                        Text(Double(category.amount) / 100.0, format: .currency(code: "EUR"))
+                        Text(category.amount, format: .currency(code: "EUR"))
                         Image(systemName: collapseHelper.contains(category.name) ? "chevron.down" : "chevron.left")
                             .frame(width: 20, height: 20)
                             .foregroundColor(.gray)

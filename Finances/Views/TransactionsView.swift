@@ -9,12 +9,15 @@
 
 // instead of dismissParent from subview add .onChange(... .isDeletec(), {dimsiss()}) to parentview
 // move deleted Transactions to Deleted "Folder"
+
+// Double -> Int https://stackoverflow.com/questions/28421176/which-swift-datatype-do-i-use-for-currency
 import SwiftUI
 import SwiftData
 
 struct TransactionsView: View {
-    @State var showDatePickerPopover: Bool = false
     @State var currDate: Date = .iso8601(year: 2023, month: 11)
+    @State var showDatePickerPopover: Bool = false
+    @State var showTransactionNewSheet: Bool = false
     
     @AppStorage("sortKeyPathHelper") var sortKeyPathHelper: Int = 0
     @AppStorage("sortOrder") var sortOrder: Bool = true
@@ -31,6 +34,11 @@ struct TransactionsView: View {
     var body: some View {
         TransactionsListView(date: currDate, sort: [sortDescriptor, SortDescriptor(\.shop?.name)], searchTerm: searchTerm)
             .searchable(text: $searchTerm)
+            .sheet(isPresented: $showTransactionNewSheet, content: {
+                NavigationView(content: {
+                    TransactionNewSheet(transaction: nil)                    
+                })
+            })
             .toolbar(content: {
                 ToolbarItemGroup(placement: .topBarTrailing, content: {
                     Menu("Sort", systemImage: "line.3.horizontal.decrease.circle", content: {
@@ -66,16 +74,15 @@ struct TransactionsView: View {
                     })
                 })
                 ToolbarItem(placement: .topBarTrailing, content: {
-                    Button("new Transaction", systemImage: "plus", action: {
-                    })
+                    Button("new Transaction", systemImage: "plus", action: { showTransactionNewSheet.toggle() })
                 })
             })
     }
 }
 
-#Preview {
-    NavigationStack(root: {
-        TransactionsView()
-            .modelContainer(previewContainer)
-    })
-}
+// #Preview {
+//     NavigationStack(root: {
+//         TransactionsView()
+//             .modelContainer(previewContainer)
+//     })
+// }

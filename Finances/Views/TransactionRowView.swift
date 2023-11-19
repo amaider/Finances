@@ -25,14 +25,14 @@ struct TransactionRowView: View {
             })
             .font(.pDate)
             
-            Text(Double(transaction.amount) / 100.0, format: .currency(code: "EUR"))
+            Text(transaction.amount, format: .currency(code: "EUR"))
                 .foregroundColor(transaction.amount > 0 ? .green : .red)
                 .shadow(radius: 10)
         })
         // .foregroundColor(transaction.shop?.color ?? .red)
         .lineLimit(1)
         .font(.pTitle)
-        .cardView(transaction.shop!.color.opacity(0.2))
+        .cardView(transaction.shop!.colorData.color.opacity(0.2))
     }
 }
 
@@ -40,7 +40,7 @@ struct TransactionRowViewSmall: View {
     let transaction: Transaction
     let isSelected: Bool
     
-    var transactionColor: Color { transaction.shop?.color ?? .primary }
+    var transactionColor: Color { transaction.shop?.colorData.color ?? .primary }
     var color1: Color { transactionColor.opacity(isSelected ? 1.0 : 0.2) }
     var color2: Color { isSelected ? transactionColor.isDark ? .white : .black : transactionColor }
     
@@ -54,7 +54,7 @@ struct TransactionRowViewSmall: View {
                 .font(.footnote)
             
 //            Color.gray.frame(width: 1)
-           // Divider()
+           Divider()
            //     .font(.caption2)
             
             Text(transaction.shop?.name ?? "no Shop")
@@ -69,13 +69,13 @@ struct TransactionRowViewSmall: View {
                 if !(transaction.documents?.isEmpty ?? false) {
                     Image(systemName: "paperclip")
                 }
-                if transaction.note != nil {
+                if !transaction.note.isEmpty {
                     Image(systemName: "note.text")
                 }
             })
             .font(.caption)
             
-            Text(Double(transaction.amount) / 100.0, format: .currency(code: "EUR"))
+            Text(transaction.amount, format: .currency(code: "EUR"))
                 .foregroundColor(transaction.amount > 0 ? .green : .red)
             
             Color.clear // todo replace with emptyview ??
@@ -90,7 +90,9 @@ struct TransactionRowViewSmall: View {
         // .contentShape(Rectangle())
         .contextMenu(menuItems: {
             NavigationLink(destination: {
-                TransactionEditSheet(transaction: transaction)
+                NavigationView(content: {
+                    TransactionNewSheet(transaction: transaction)                    
+                })
             }, label: { Label("Edit", systemImage: "square.and.pencil")})
             Button("Duplicate", systemImage: "doc.on.doc.fill", action: { transaction.duplicate() })
             Button("Delete", systemImage: "trash", role: .destructive, action: { transaction.deleteOtherRelationships() })

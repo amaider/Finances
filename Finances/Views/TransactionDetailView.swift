@@ -59,9 +59,9 @@ struct TransactionDetailView: View {
                    Text(transaction.category?.name ?? "nil")
                 })
                 
-                if let note: String = transaction.note {
+                if !transaction.note.isEmpty {
                     Divider()
-                    Text(note)
+                    Text(transaction.note)
                 }
             })
         })
@@ -84,7 +84,9 @@ struct TransactionDetailView: View {
             if $1 { dismiss() }
         })
         .sheet(isPresented: $showEditSheet, content: {
-            TransactionEditSheet(transaction: transaction)
+            NavigationView(content: {
+                TransactionNewSheet(transaction: transaction)                
+            })
         })
     }
 }

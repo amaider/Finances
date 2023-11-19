@@ -3,7 +3,7 @@
 
 import SwiftUI
 
-struct ColorData: Codable {
+struct ColorData: Codable, Comparable {
     var red: Double = 1
     var green: Double = 1
     var blue: Double = 1
@@ -27,9 +27,25 @@ struct ColorData: Codable {
         self.blue = blue
         self.opacity = opacity
     }
+    
+    public static func < (lhs: ColorData, rhs: ColorData) -> Bool {
+        let lhsResolved = lhs.color.resolve(in: EnvironmentValues())
+        let lhsLum = 0.2126 * lhsResolved.red + 0.7152 * lhsResolved.green + 0.0722 * lhsResolved.blue
+        let rhsResolved = rhs.color.resolve(in: EnvironmentValues())
+        let rhsLum = 0.2126 * rhsResolved.red + 0.7152 * rhsResolved.green + 0.0722 * rhsResolved.blue
+        return lhsLum < rhsLum
+    }
 }
 
-extension Color {
+extension Color: Comparable {
+    public static func < (lhs: Color, rhs: Color) -> Bool {
+        let lhsResolved = lhs.resolve(in: EnvironmentValues())
+        let lhsLum = 0.2126 * lhsResolved.red + 0.7152 * lhsResolved.green + 0.0722 * lhsResolved.blue
+        let rhsResolved = rhs.resolve(in: EnvironmentValues())
+        let rhsLum = 0.2126 * rhsResolved.red + 0.7152 * rhsResolved.green + 0.0722 * rhsResolved.blue
+        return lhsLum < rhsLum
+    }
+    
     var isDark: Bool {
         let resolved = self.resolve(in: EnvironmentValues())
         let lum = 0.2126 * resolved.red + 0.7152 * resolved.green + 0.0722 * resolved.blue

@@ -16,7 +16,7 @@ struct TransactionEditSheet: View {
     @State var shopInput: String
     @State var locationInput: String
     @State var dateInput: Date
-    @State var amountInput: Int
+    @State var amountInput: Decimal
     @State var categoryInput: String
     @State var itemsInput: [Item]
     @State var documentsInput: [Document]
@@ -55,7 +55,7 @@ struct TransactionEditSheet: View {
         _itemsInput = State(initialValue: [])
         _documentsInput = State(initialValue: [])
         _categoryInput = State(initialValue: transaction.category?.name ?? "")
-        _noteInput = State(initialValue: transaction.note ?? "")
+        _noteInput = State(initialValue: transaction.note)
     }
     
     var body: some View {
@@ -136,17 +136,17 @@ struct TransactionEditSheet: View {
     
     private func updateTransaction() {
         let shops: [Shop]? = try? transaction.modelContext?.fetch(FetchDescriptor<Shop>())
-        let shop: Shop = shops?.first(where: { $0.name == shopInput }) ?? Shop(name: shopInput)
+        let shop: Shop = shops?.first(where: { $0.name == shopInput }) ?? Shop(name: shopInput, location: locationInput, amount: Decimal(0))
 //        if !(shops?.contains(shop) ?? false) { transaction.modelContext?.insert(shop) }
         transaction.shop = shop
         
         let categories: [Category]? = try? transaction.modelContext?.fetch(FetchDescriptor<Category>())
-        let category: Category = categories?.first(where: { $0.name == categoryInput }) ?? Category(name: categoryInput)
+        let category: Category = categories?.first(where: { $0.name == categoryInput }) ?? Category(name: categoryInput, amount: Decimal(0))
         transaction.category = category
         
         transaction.date = dateInput
         transaction.amount = amountInput
-        transaction.note = noteInput.isEmpty ? nil : noteInput
+        transaction.note = noteInput
         
         transaction.documents = []
         transaction.items = []
@@ -186,7 +186,7 @@ struct TransactionEditSheet: View {
         switch result {
             case .success(let url):
                 selectedDocumentURL = url
-                let newDocument: Document = Document(url: url)
+                let newDocument: Document = Document(url: url, size: 0)
                 documentsInput.append(newDocument)
             case .failure(let error):
                 print("Error fileImporter: \(error.localizedDescription)")

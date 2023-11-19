@@ -5,37 +5,39 @@ import SwiftData
 import SwiftUI
 
 @Model class Transaction {
-    var shop: Shop?
     var date: Date
-    var amount: Int
-//    var amount: Int { items.reduce($0, $1.amount) }
-    // @Relationship(inverse: \Item.transactions) 
+    var amount: Decimal
+    var note: String
+    
+    var shop: Shop?
+    // @Relationship(inverse: \Item.transactions)
     var items: [Item]?
     // @Relationship(inverse: \Document.transaction)
     var documents: [Document]?
     var category: Category?
-    var note: String?
     
-    @Transient var searchTerms: Set<String> {
-        var result: Set<String> = []
-        
-        if let shopString = shop?.name { result.insert(shopString) }
-        result.insert(Formatter.dateFormatter.string(from: date))
-        if let amountString: String = Formatter.currencyFormatter.string(from: Double(amount) / 100.0 as NSNumber) { result.insert(amountString) }
-        if let categoryString: String = category?.name { result.insert(categoryString) }
-        //        items?.forEach({
-        //            $0.name.split(separator: " ").map(String.init).forEach({ result.insert($0) })
-        //            if let noteString: String = $0.note { result.insert(noteString) }
-        //            result.insert($0.volume)
-        //            if let amountString: String = Formatter.currencyFormatter.string(from: Double($0.amount) / 100.0 as NSNumber) { result.insert(amountString) }
-        //        })
-        // documents?.forEach({ result.insert($0.name) })
-        note?.split(separator: " ").map(String.init).forEach({ result.insert($0) })
-        
-        return result
-    }
+//    @Transient
+//    @Attribute(.ephemeral) var searchTerms: Set<String> {
+//        var result: Set<String> = []
+//
+//        if let shopString = shop?.name { result.insert(shopString) }
+//        result.insert(Formatter.dateFormatter.string(from: date))
+//        if let amountString: String = Formatter.currencyFormatter.string(from: amount as NSDecimalNumber) { result.insert(amountString) }
+//        if let categoryString: String = category?.name { result.insert(categoryString) }
+//        items?.forEach({
+//            $0.name.split(separator: " ").map(String.init).forEach({ result.insert($0) })
+//            $0.note.split(separator: " ").map(String.init).forEach({ result.insert($0) })
+//            result.insert($0.volume)
+//            if let amountString: String = Formatter.currencyFormatter.string(from: $0.amount as NSDecimalNumber) { result.insert(amountString) }
+//        })
+//        documents?.forEach({ result.insert($0.url.lastPathComponent) })
+//        note.split(separator: " ").map(String.init).forEach({ result.insert($0) })
+//
+//        return result
+//    }
+    var searchTerms: Array<String>
     
-    init(shop: Shop?, date: Date, amount: Int, category: Category?, items: [Item]? = nil, documents: [Document]? = nil, note: String? = nil) {
+    init(shop: Shop?, date: Date, amount: Decimal, items: [Item]?, documents: [Document]?, category: Category?, note: String, searchTerms: Array<String>) {
         self.shop = shop
         self.date = date
         self.amount = amount
@@ -43,6 +45,7 @@ import SwiftUI
         self.items = items
         self.documents = documents
         self.note = note
+        self.searchTerms = searchTerms
     }
     
     // create "local" transaction with all new relationships
@@ -73,13 +76,13 @@ import SwiftUI
     func duplicate() {
         guard let context = self.modelContext else { return }
         
-        let transaction: Transaction = .init(shop: self.shop, date: self.date, amount: self.amount, category: self.category)
+        let transaction: Transaction = .init(shop: self.shop, date: self.date, amount: self.amount, items: self.items, documents: self.documents, category: self.category, note: self.note, searchTerms: self.searchTerms)
 //        self.shop?.transactions.append(transaction)
 //        self.category?.transactions.append(transaction)
         context.insert(transaction)
     }
     
-    func update2(shop: Shop?, date: Date, amount: Int, category: Category?, items: [Item]?, documents: [Document]?, note: String? = nil) {
+    func update2(shop: Shop?, date: Date, amount: Decimal, category: Category?, items: [Item]?, documents: [Document]?, note: String) {
         self.shop = shop
         self.date = date
         self.amount = amount
@@ -95,7 +98,7 @@ import SwiftUI
             
             // find new shop
             let shops: [Shop]? = try? self.modelContext?.fetch(FetchDescriptor<Shop>())
-            let shop: Shop = shops?.first(where: { $0.name == newTransaction.shop?.name }) ?? Shop(name: newTransaction.shop?.name ?? "Nan")
+            let shop: Shop = shops?.first(where: { $0.name == newTransaction.shop?.name }) ?? Shop(name: newTransaction.shop?.name ?? "Nan", location: "", amount: Decimal(0))
             if !(shops?.contains(shop) ?? false) { self.modelContext?.insert(shop) }
             
             self.shop = shop
@@ -111,7 +114,7 @@ import SwiftUI
             
             // find new category
             let categories: [Category]? = try? self.modelContext?.fetch(FetchDescriptor<Category>())
-            let category: Category = categories?.first(where: { $0.name == self.category?.name }) ?? Category(name: newTransaction.category?.name ?? "Nan")
+            let category: Category = categories?.first(where: { $0.name == self.category?.name }) ?? Category(name: newTransaction.category?.name ?? "Nan", amount: Decimal(0))
             if !(categories?.contains(category) ?? false) { self.modelContext?.insert(category) }
             
             self.category = category
@@ -131,15 +134,15 @@ import SwiftUI
         // replace these with @Relationship(deleteRules:) ?
         if let shop: Shop = self.shop {
             // delete from shop
-            shop.transactions.removeAll(where: { $0 === self })
+            shop.transactions?.removeAll(where: { $0 === self })
             // delete shop if empty
-            if shop.transactions.isEmpty { context.delete(shop) }
+            if shop.transactions?.isEmpty ?? true { context.delete(shop) }
         }
         if let category: Category = self.category {
             // delete from category
-            category.transactions.removeAll(where: { $0 === self })
+            category.transactions?.removeAll(where: { $0 === self })
             // delete category if empty
-            if category.transactions.isEmpty { context.delete(category) }
+            if category.transactions?.isEmpty ?? true { context.delete(category) }
         }
         // for item in self.items ?? [] {
         //     // delete from item
@@ -164,15 +167,15 @@ import SwiftUI
         // replace these with @Relationship(deleteRules:) ?
         if let shop: Shop = transaction.shop {
             // delete from shop
-            shop.transactions.removeAll(where: { $0 === transaction })
+            shop.transactions?.removeAll(where: { $0 === transaction })
             // delete shop if empty
-            if shop.transactions.isEmpty { context.delete(shop) }
+            if shop.transactions?.isEmpty ?? true { context.delete(shop) }
         }
         if let category: Category = transaction.category {
             // delete from category
-            category.transactions.removeAll(where: { $0 === transaction })
+            category.transactions?.removeAll(where: { $0 === transaction })
             // delete category if empty
-            if category.transactions.isEmpty { context.delete(category) }
+            if category.transactions?.isEmpty ?? true { context.delete(category) }
         }
         // for item in transaction.items ?? [] {
         //     // delete from item
@@ -188,86 +191,9 @@ import SwiftUI
     }
     
     static func example() -> Transaction {
-        let transaction: Transaction = .init(shop: nil, date: .now, amount: 123, category: nil, items: nil, documents: nil)
-        transaction.shop = .init(name: "Rewe", location: "Mitte", colorData: .init(.red))
-        transaction.category = .init(name: "Food")
+        let transaction: Transaction = .init(shop: nil, date: .now, amount: Decimal(1234), items: nil, documents: nil, category: nil, note: "", searchTerms: [])
+        transaction.shop = .init(name: "Rewe", location: "Mitte", colorData: .init(.red), amount: Decimal(0))
+        transaction.category = .init(name: "Food", amount: Decimal(0))
         return transaction
-    }
-}
-
-@Model class Shop {
-    var name: String
-    var location: String?
-    var colorData: ColorData?
-    var transactions: [Transaction] = []
-    
-    @Transient var color: Color { colorData?.color ?? .primary }
-    @Transient var amount: Int { transactions.reduce(0, { $0 + $1.amount })}
-    
-    init(name: String, location: String? = nil, colorData: ColorData? = nil) {
-        self.name = name
-        self.location = location
-        self.colorData = colorData
-    }
-    
-    // only delete if empty
-    func delete() {
-        if !transactions.isEmpty { return }
-        guard let context = self.modelContext else { return }
-        context.delete(self)
-    }
-    
-    static func delete(_ shop: Shop) {
-        if !shop.transactions.isEmpty { return }
-        guard let context = shop.modelContext else { return }
-        context.delete(shop)
-    }
-}
-
-@Model class Category {
-    var name: String
-    var transactions: [Transaction] = []
-    
-    @Transient var amount: Int { transactions.reduce(0, { $0 + $1.amount })}
-    
-    init(name: String) {
-        self.name = name
-    }
-    init(name: String, transactions: [Transaction]) {
-        self.name = name
-        self.transactions = transactions
-    }
-    
-    func delete() {
-        if !transactions.isEmpty { return }
-        guard let context = self.modelContext else { return }
-        context.delete(self)
-    }
-}
-
-@Model class Item {
-    var name: String
-    var amount: Int
-    var volume: String
-    var note: String?
-    
-    @Relationship(inverse: \Transaction.items) var transactions: [Transaction] = []
-    
-    init(name: String, amount: Int, volume: String, note: String?) {
-        self.name = name
-        self.amount = amount
-        self.volume = volume
-    }
-}
-
-@Model class Document {
-    var url: URL
-    // @Attribute(.externalStorage) var data: Data
-    
-    @Relationship(inverse: \Transaction.documents) var transaction: Transaction?
-    
-    init(url: URL) {
-        self.url = url
-//        self.data = data
     }
 }

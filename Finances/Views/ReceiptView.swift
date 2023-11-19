@@ -25,25 +25,26 @@ struct ReceiptView: View {
                 Text("")
                 
                 // MARK: Items
-                // if transaction.items == nil || transaction.items?.isEmpty ?? true {
-                HStack(content: {
-                    Text("No Items")
-                        .opacity(0.5)
-                    Spacer()
-                })
-                // } else {
-                //     Grid(content: {
-                //         ForEach(transaction.items ?? [], content: { item in
-                //             GridRow(content: {
-                //                 Text(item.name).gridColumnAlignment(.leading)
-                //                 Spacer()
-                //                 Text(item.volume).opacity(0.6).gridColumnAlignment(.trailing)
-                //                 Text(Double(item.amount) / 100.0, format: .currency(code: "EUR")).gridColumnAlignment(.trailing)
-                //             })
-                //         })
-                //     })
-                //     .font(.pSectionBody)
-                // }
+                if transaction.items?.isEmpty ?? true {
+                    HStack(content: {
+                        Text("No Items")
+                            .opacity(0.5)
+                        Spacer()
+                    })
+                } else {
+                    Grid(content: {
+                        ForEach(transaction.items!, content: { item in
+                            GridRow(content: {
+                                Text(item.name).gridColumnAlignment(.leading)
+                                Text(item.note).opacity(0.6).gridColumnAlignment(.leading)
+                                Spacer()
+                                Text(item.volume).opacity(0.6).gridColumnAlignment(.trailing)
+                                Text(item.amount, format: .currency(code: "EUR")).gridColumnAlignment(.trailing)
+                            })
+                        })
+                    })
+                    .font(.pSectionBody)
+                }
                 
                 Divider()
                 Divider()
@@ -51,7 +52,7 @@ struct ReceiptView: View {
                 HStack(alignment: .lastTextBaseline, content: {
                     Text("Total")
                     Spacer()
-                    Text(Double(transaction.amount) / 100.0, format: .currency(code: "EUR"))
+                    Text(transaction.amount, format: .currency(code: "EUR"))
                 })
                 .lineLimit(1)
                 .font(.title2)
