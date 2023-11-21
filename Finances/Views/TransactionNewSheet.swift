@@ -151,22 +151,25 @@ struct TransactionNewSheet: View {
         dismiss()
     }
     
+    
+    // todo: check for existing transaction like shop/category so you can combine both ifs into one branch/thing
     private func saveTransaction() {
         if transaction == nil {
-            let transaction: Transaction = .init(shop: nil, date: dateInput, amount: Decimal(0), items: [], documents: [], category: nil, note: noteInput, searchTerms: "")
+            let transaction: Transaction = .init(date: dateInput, note: noteInput)
             modelContext.insert(transaction)
             
             itemsInput.forEach({ transaction.items?.append(Item(name: $0.name, note: $0.note, volume: $0.volume, amount: $0.amount, transaction: nil, date: dateInput))})
             transaction.amount = transaction.items?.reduce(0, { $0 + $1.amount }) ?? 0
             
             let shops: [Shop]? = try? modelContext.fetch(FetchDescriptor<Shop>())
-            let shop: Shop = shops?.first(where: { $0.name == shopInput}) ?? Shop(name: shopInput, location: locationInput, color: nil, amount: Decimal(0))
+            let shop: Shop = shops?.first(where: { $0.name == shopInput && $0.location == locationInput }) ?? Shop(name: shopInput, location: locationInput, color: nil, transactionsCount: 0, amount: Decimal(0))
+            shop.transactionsCount = shop.transactions?.count ?? 0
             shop.amount += transaction.amount
             transaction.shop = shop
             
             transaction.documents = documentsInput
             
-            let category: Category = categories.first(where: { $0 == categoryInput }) ?? Category(name: "nil", amount: Decimal(0))
+            let category: Category = categories.first(where: { $0 == categoryInput }) ?? categories.first(where: { $0.name == "nil" }) ?? Category(name: "nil", amount: Decimal(0))
             category.amount += transaction.amount
             transaction.category = category
             
@@ -181,7 +184,6 @@ struct TransactionNewSheet: View {
                 
                 itemsInput.forEach({ transaction?.items?.append(Item(name: $0.name, note: $0.note, volume: $0.volume, amount: $0.amount, transaction: nil, date: dateInput)) })
                 transaction?.amount = transaction?.items?.reduce(0, { $0 + $1.amount }) ?? Decimal(0)
-                print(transaction?.amount)
             }
             
             if transaction?.shop?.name != shopInput || transaction?.shop?.location != locationInput {
@@ -189,9 +191,10 @@ struct TransactionNewSheet: View {
                 // transaction?.shop?.delete()
                 
                 let shops: [Shop]? = try? modelContext.fetch(FetchDescriptor<Shop>())
-                let shop: Shop = shops?.first(where: { $0.name == shopInput && $0.location == locationInput }) ?? Shop(name: shopInput, location: locationInput, color: nil, amount: Decimal(0))
+                let shop: Shop = shops?.first(where: { $0.name == shopInput && $0.location == locationInput }) ?? Shop(name: shopInput, location: locationInput, color: nil, transactionsCount: 0, amount: Decimal(0))
                 shop.amount += transaction!.amount
                 transaction?.shop = shop
+                shop.transactionsCount = shop.transactions?.count ?? 0
             }
             
 //            transaction?.documents?.forEach({ $0.delete() })
@@ -201,7 +204,7 @@ struct TransactionNewSheet: View {
                 print("diff category")
                 // transaction?.category?.delete()
                 
-                let category: Category = categories.first(where: { $0 == categoryInput }) ?? Category(name: "nil", amount: Decimal(0))
+                let category: Category = categories.first(where: { $0 == categoryInput }) ?? categories.first(where: { $0.name == "nil" }) ?? Category(name: "nil", amount: Decimal(0))
                 category.amount += transaction!.amount
                 transaction?.category = category
             }

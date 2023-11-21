@@ -11,8 +11,9 @@ struct ShopsView: View {
     var sortDescriptor: SortDescriptor<Shop> {
         let sortOrder: SortOrder = sortOrder ? .forward : .reverse
         switch sortKeyPathHelper {
-            case 2: return SortDescriptor(\.name, order: sortOrder)
+            case 2: return SortDescriptor(\.amount, order: sortOrder)
             case 3: return SortDescriptor(\.colorData, order: sortOrder)
+            case 4: return SortDescriptor(\.transactionsCount, order: sortOrder)
             default: return SortDescriptor(\.name, order: sortOrder)
         }
     }
@@ -29,6 +30,7 @@ struct ShopsView: View {
                             Text("Name").tag(1)
                             Text("Amount").tag(2)
                             Text("Color").tag(3)
+                            Text("Count").tag(4)
                         })
                         Picker("Order", selection: $sortOrder, content: {
                             Text("Forward").tag(true)
@@ -74,7 +76,7 @@ struct ShopsListView: View {
                                     set: { if $0.isEmpty { shop.location = nil } else { shop.location = $0 } }
                                 )
                                 let colorBinding: Binding<Color> = Binding(
-                                    get: { shop.color },
+                                    get: { shop.colorTransient },
                                     set: {
                                         let newColor: Color.Resolved = $0.resolve(in: EnvironmentValues())
                                         if newColor.red > 0.8 && newColor.green > 0.8 && newColor.blue > 0.8 || newColor.red < 0.2 && newColor.green < 0.2 && newColor.blue < 0.2 { shop.colorData = nil }
@@ -104,7 +106,7 @@ struct ShopsListView: View {
                                 .font(.caption)
                         })
                     }, label: {
-                        Text(shop.name).foregroundStyle(shop.color)
+                        Text(shop.name).foregroundStyle(shop.colorTransient)
                         if !(shop.location?.isEmpty ?? true) { Text(shop.location!) }
                     })
                 })

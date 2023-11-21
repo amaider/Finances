@@ -28,7 +28,6 @@
 		F9B2F0922B03DC830091AD2B /* secretData.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9B2F0912B03DC830091AD2B /* secretData.swift */; };
 		F9B2F0942B03F49C0091AD2B /* TransactionNewSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9B2F0932B03F49C0091AD2B /* TransactionNewSheet.swift */; };
 		F9B2F0962B03F9070091AD2B /* ReceiptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9B2F0952B03F9070091AD2B /* ReceiptView.swift */; };
-		F9B2F0982B0400650091AD2B /* TransactionEditSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9B2F0972B0400650091AD2B /* TransactionEditSheet.swift */; };
 		F9B2F09B2B0421500091AD2B /* DocumentRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9B2F09A2B0421500091AD2B /* DocumentRowView.swift */; };
 		F9C9A7BF2B06AE8200949BAE /* Font+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9C9A7BE2B06AE8200949BAE /* Font+Extension.swift */; };
 		F9C9A7C12B06AEC100949BAE /* CustomMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9C9A7C02B06AEC100949BAE /* CustomMenu.swift */; };
@@ -68,7 +67,6 @@
 		F9B2F0912B03DC830091AD2B /* secretData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = secretData.swift; sourceTree = "<group>"; };
 		F9B2F0932B03F49C0091AD2B /* TransactionNewSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionNewSheet.swift; sourceTree = "<group>"; };
 		F9B2F0952B03F9070091AD2B /* ReceiptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptView.swift; sourceTree = "<group>"; };
-		F9B2F0972B0400650091AD2B /* TransactionEditSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionEditSheet.swift; sourceTree = "<group>"; };
 		F9B2F09A2B0421500091AD2B /* DocumentRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentRowView.swift; sourceTree = "<group>"; };
 		F9C9A7BE2B06AE8200949BAE /* Font+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Font+Extension.swift"; sourceTree = "<group>"; };
 		F9C9A7C02B06AEC100949BAE /* CustomMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomMenu.swift; sourceTree = "<group>"; };
@@ -176,7 +174,6 @@
 				F9B2F0952B03F9070091AD2B /* ReceiptView.swift */,
 				F9B2F0932B03F49C0091AD2B /* TransactionNewSheet.swift */,
 				F93A31952B0928AB008C2AA3 /* ItemEditView.swift */,
-				F9B2F0972B0400650091AD2B /* TransactionEditSheet.swift */,
 				F905162D2B06CEB50023DEE8 /* CategorySheet.swift */,
 				F9B2F0992B0421370091AD2B /* HelperViews */,
 			);
@@ -283,7 +280,6 @@
 				F9D8A9992B00E2FA001C2B32 /* TransactionsView.swift in Sources */,
 				F9123FF22B00E0D1004FB3C0 /* FinancesApp.swift in Sources */,
 				F9990A262B081D18004390AA /* SideBarView.swift in Sources */,
-				F9B2F0982B0400650091AD2B /* TransactionEditSheet.swift in Sources */,
 				F93A318A2B091303008C2AA3 /* Category.swift in Sources */,
 				F9D8A9A62B010660001C2B32 /* View+Extension.swift in Sources */,
 				F9D8A99B2B00E316001C2B32 /* Transaction.swift in Sources */,

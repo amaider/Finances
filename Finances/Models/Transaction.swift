@@ -4,7 +4,7 @@
 import SwiftData
 import SwiftUI
 
-@Model class Transaction {
+@Model class Transaction: Codable {
     var date: Date
     var amount: Decimal
     var note: String
@@ -38,7 +38,7 @@ import SwiftUI
     var searchTerms: String
     
     
-    init(shop: Shop?, date: Date, amount: Decimal, items: [Item]?, documents: [Document]?, category: Category?, note: String, searchTerms: String) {
+    init(shop: Shop? = nil, date: Date, amount: Decimal = Decimal(0), items: [Item]? = [], documents: [Document]? = [], category: Category? = nil, note: String, searchTerms: String = "") {
         self.shop = shop
         self.date = date
         self.amount = amount
@@ -83,47 +83,47 @@ import SwiftUI
         context.insert(transaction)
     }
     
-    func update2(shop: Shop?, date: Date, amount: Decimal, category: Category?, items: [Item]?, documents: [Document]?, note: String) {
-        self.shop = shop
-        self.date = date
-        self.amount = amount
-        self.category = category
-        self.items = items
-        self.documents = documents
-        self.note = note
-    }
-    func update(with newTransaction: Transaction) {
-        if self.shop?.name != newTransaction.shop?.name {
-            /// save old shop for late so we can delete old shop if empty
-            let oldShop: Shop? = self.shop
-            
-            /// find new shop
-            let shops: [Shop]? = try? self.modelContext?.fetch(FetchDescriptor<Shop>())
-            let shop: Shop = shops?.first(where: { $0.name == newTransaction.shop?.name }) ?? Shop(name: newTransaction.shop?.name ?? "Nan", location: "", color: nil, amount: Decimal(0))
-            if !(shops?.contains(shop) ?? false) { self.modelContext?.insert(shop) }
-            
-            self.shop = shop
-            oldShop?.delete()
-        }
-        
-        self.date = newTransaction.date
-        self.amount = newTransaction.amount
-        
-        if self.category?.name != newTransaction.category?.name {
-            // save old category for late so we can delete old category if empty
-            let oldCategory: Category? = self.category
-            
-            // find new category
-            let categories: [Category]? = try? self.modelContext?.fetch(FetchDescriptor<Category>())
-            let category: Category = categories?.first(where: { $0.name == self.category?.name }) ?? Category(name: newTransaction.category?.name ?? "Nan", amount: Decimal(0))
-            if !(categories?.contains(category) ?? false) { self.modelContext?.insert(category) }
-            
-            self.category = category
-            oldCategory?.delete()
-        }
-        
-        self.note = newTransaction.note
-    }
+    // func update2(shop: Shop?, date: Date, amount: Decimal, category: Category?, items: [Item]?, documents: [Document]?, note: String) {
+    //     self.shop = shop
+    //     self.date = date
+    //     self.amount = amount
+    //     self.category = category
+    //     self.items = items
+    //     self.documents = documents
+    //     self.note = note
+    // }
+    // func update(with newTransaction: Transaction) {
+    //     if self.shop?.name != newTransaction.shop?.name {
+    //         /// save old shop for late so we can delete old shop if empty
+    //         let oldShop: Shop? = self.shop
+    //         
+    //         /// find new shop
+    //         let shops: [Shop]? = try? self.modelContext?.fetch(FetchDescriptor<Shop>())
+    //         let shop: Shop = shops?.first(where: { $0.name == newTransaction.shop?.name }) ?? Shop(name: newTransaction.shop?.name ?? "Nan", location: "", color: nil, amount: Decimal(0), transactionsCount: 0)
+    //         if !(shops?.contains(shop) ?? false) { self.modelContext?.insert(shop) }
+    //         
+    //         self.shop = shop
+    //         oldShop?.delete()
+    //     }
+    //     
+    //     self.date = newTransaction.date
+    //     self.amount = newTransaction.amount
+    //     
+    //     if self.category?.name != newTransaction.category?.name {
+    //         // save old category for late so we can delete old category if empty
+    //         let oldCategory: Category? = self.category
+    //         
+    //         // find new category
+    //         let categories: [Category]? = try? self.modelContext?.fetch(FetchDescriptor<Category>())
+    //         let category: Category = categories?.first(where: { $0.name == self.category?.name }) ?? Category(name: newTransaction.category?.name ?? "Nan", amount: Decimal(0))
+    //         if !(categories?.contains(category) ?? false) { self.modelContext?.insert(category) }
+    //         
+    //         self.category = category
+    //         oldCategory?.delete()
+    //     }
+    //     
+    //     self.note = newTransaction.note
+    // }
     
     /// users can only delete transactions, so delete from other @Models as well
     func deleteOtherRelationships() {
@@ -160,8 +160,42 @@ import SwiftUI
     
     static func example() -> Transaction {
         let transaction: Transaction = .init(shop: nil, date: .now, amount: Decimal(1234), items: nil, documents: nil, category: nil, note: "", searchTerms: "")
-        transaction.shop = .init(name: "Rewe", location: "Mitte", color: .red, amount: Decimal(0))
+        transaction.shop = .init(name: "Rewe", location: "Mitte", color: .red, transactionsCount: 0, amount: Decimal(0))
         transaction.category = .init(name: "Food", amount: Decimal(0))
         return transaction
+    }
+    
+    // MARK: Codable
+    private enum CodingKeys: String, CodingKey {
+        case date
+        case amount
+        case note
+        case shop
+        case items
+        case documents
+        case category
+        case searchTerms
+    }
+    required init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        date = try container.decode(Date.self, forKey: .date)
+        amount = try container.decode(Decimal.self, forKey: .amount)
+        note = try container.decode(String.self, forKey: .note)
+        shop = try container.decode(Shop.self, forKey: .shop)
+        items = try container.decode([Item].self, forKey: .items)
+        documents = try container.decode([Document].self, forKey: .documents)
+        category = try container.decode(Category.self, forKey: .category)
+        searchTerms = try container.decode(String.self, forKey: .searchTerms)
+    }
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(date, forKey: .date)
+        try container.encode(amount, forKey: .amount)
+        try container.encode(note, forKey: .note)
+        try container.encode(shop, forKey: .shop)
+        try container.encode(items, forKey: .items)
+        try container.encode(documents, forKey: .documents)
+        try container.encode(category, forKey: .category)
+        try container.encode(searchTerms, forKey: .searchTerms)
     }
 }

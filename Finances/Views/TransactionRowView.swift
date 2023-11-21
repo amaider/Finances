@@ -32,7 +32,7 @@ struct TransactionRowView: View {
         // .foregroundColor(transaction.shop?.color ?? .red)
         .lineLimit(1)
         .font(.pTitle)
-        .cardView(transaction.shop!.color.opacity(0.2))
+        .cardView(transaction.shop!.colorTransient.opacity(0.2))
     }
 }
 
@@ -40,7 +40,7 @@ struct TransactionRowViewSmall: View {
     let transaction: Transaction
     let isSelected: Bool
     
-    var transactionColor: Color { transaction.shop?.color ?? .primary }
+    var transactionColor: Color { transaction.shop?.colorTransient ?? .primary }
     var color1: Color { transactionColor.opacity(isSelected ? 1.0 : 0.2) }
     var color2: Color { isSelected ? transactionColor.isDark ? .white : .black : transactionColor }
     

@@ -11,6 +11,10 @@
 // move deleted Transactions to Deleted "Folder"
 
 // Double -> Int https://stackoverflow.com/questions/28421176/which-swift-datatype-do-i-use-for-currency
+
+// !!! move transient variables assignment inside @Model and use .update() to update the variables. probably wont work with date (maybe .update(with date: Date))
+
+
 import SwiftUI
 import SwiftData
 

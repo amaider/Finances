@@ -4,7 +4,7 @@
 import SwiftUI
 import SwiftData
 
-@Model class Category {
+@Model class Category: Codable {
     
     var name: String
     
@@ -23,5 +23,24 @@ import SwiftData
         if !(transactions?.isEmpty ?? true) { return }
         guard let context = self.modelContext else { return }
         context.delete(self)
+    }
+    
+    // MARK: Codable
+    private enum CodingKeys: String, CodingKey {
+        case name
+        case transactions
+        case amount
+    }
+    required init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        name = try container.decode(String.self, forKey: .name)
+        transactions = try container.decode([Transaction].self, forKey: .transactions)
+        amount = try container.decode(Decimal.self, forKey: .amount)
+    }
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(name, forKey: .name)
+        try container.encode(transactions, forKey: .transactions)
+        try container.encode(amount, forKey: .amount)
     }
 }

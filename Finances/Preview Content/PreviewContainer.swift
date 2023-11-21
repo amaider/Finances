@@ -18,29 +18,12 @@ let previewContainer: ModelContainer = {
             for row in rows {
                 let columns = row.components(separatedBy: ",")
                 
-                let shopColorsDict: Dictionary<String, Color> = [
-                    "Rewe" : .red,
-                    "Netto" : .yellow,
-                    "Bäcker" : .cyan,
-                    "Studienkosten": Color.green,
-                    "unity-media": Color.blue,
-                    "aliexpress": Color.red
-                ]
-                let shopCategoryDict: Dictionary<String, String> = [
-                    "Rewe" : "Food",
-                    "Netto" : "Food",
-                    "Bäcker" : "Food",
-                    "Studienkosten": "Taschengeld",
-                    "unity-media": "Rent",
-                    "aliexpress": "Hobby"
-                ]
-                
                 let colorInput: Color? = shopColorsDict[columns[1]]
                 
                 let categoryInput: String = shopCategoryDict[columns[1]] ?? "other"
                 let category: Category = Category(name: categoryInput, amount: Decimal(0))
                 
-                let shop: Shop = .init(name: columns[1], location: "", color: colorInput, amount: Decimal(0))
+                let shop: Shop = .init(name: columns[1], location: "", color: colorInput, transactionsCount: 0, amount: Decimal(0))
                 let date: Date = Formatter.dateFormatter.date(from: columns[0]) ?? .now
                 let amount: Decimal = Decimal((Double(columns[3]) ?? 0) * 100) * -1
                 let note: String = [columns[4], columns[6]].joined(separator: "\n")
