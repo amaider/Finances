@@ -5,42 +5,51 @@ import SwiftUI
 import SwiftData
 
 @Model class Shop: Codable {
+    // MARK: Properties
     var name: String
-    var location: String?
+    var location: String
     var colorData: UInt?
     
-    var transactions: [Transaction]?
+    // MARK: Relationships
+    var transactions: [Transaction]? = []
     
+    // MARK: Transient
     @Transient var colorTransient: Color {
         guard let colorData: UInt = colorData else { return .primary }
         return Color.init(hex: colorData)
     }
-//    @Transient var transactionsCount: Int { transactions?.count }
-    var transactionsCount: Int
-//    @Transient var amount: Decimal { transactions?.reduce(0, { $0 + $1.amount }) ?? 0 }
-    var amount: Decimal
     
+    // MARK: Transient KeyPath
+//    @Transient var transactionsCount: Int { transactions?.count }
+    var transactionsCount: Int = 0
+//    @Transient var amount: Decimal { transactions?.reduce(0, { $0 + $1.amount }) ?? 0 }
+    var amount: Decimal = Decimal(0)
+    // @Transient var average: Decimal { transactionsCount == 0 ? 0 : amount / Decimal(transactionsCount) }
+    var average: Decimal = Decimal(0)    /// average per transaction
+    
+    // MARK: init
     /// only relationships default initialized, because they get set in transaction, so not necessarry for init
-    init(name: String, location: String?, color: Color?, transactions: [Transaction]? = [], transactionsCount: Int, amount: Decimal) {
+    init(name: String, location: String, color: Color?) {
         self.name = name
         self.location = location
         self.colorData = color?.hex
-        self.transactions = transactions
-        self.transactionsCount = transactionsCount
-        self.amount = amount
     }
     
-    /// only delete if empty
+    // MARK: Functions
     func delete() {
+        /// only delete if empty
         if !(transactions?.isEmpty ?? true) { return }
-        guard let context = self.modelContext else { return }
-        context.delete(self)
+        self.modelContext?.delete(self)
     }
-    
-    static func delete(_ shop: Shop) {
-        if !(shop.transactions?.isEmpty ?? true) { return }
-        guard let context = shop.modelContext else { return }
-        context.delete(shop)
+    func update() {
+        self.transactionsCount = transactions?.count ?? 0
+        self.amount = transactions?.reduce(0, { $0 + $1.amount }) ?? 0
+        self.average = transactionsCount == 0 ? 0 : amount / Decimal(transactionsCount)
+        self.delete()
+    }
+    func remove(transaction: Transaction) {
+        self.transactions?.removeAll(where: { $0 === transaction })
+        self.update()
     }
     
     // MARK: Codable
@@ -51,6 +60,7 @@ import SwiftData
         case transactions
         case transactionsCount
         case amount
+        case average
     }
     required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -60,6 +70,7 @@ import SwiftData
         transactions = try container.decode([Transaction].self, forKey: .transactions)
         transactionsCount = try container.decode(Int.self, forKey: .transactionsCount)
         amount = try container.decode(Decimal.self, forKey: .amount)
+        average = try container.decode(Decimal.self, forKey: .average)
     }
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
@@ -69,5 +80,6 @@ import SwiftData
         try container.encode(transactions, forKey: .transactions)
         try container.encode(transactionsCount, forKey: .transactionsCount)
         try container.encode(amount, forKey: .amount)
+        try container.encode(average, forKey: .average)
     }
 }

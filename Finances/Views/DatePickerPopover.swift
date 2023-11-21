@@ -2,9 +2,13 @@
 // Copyright © 2023 amaider. All rights reserved.
 
 import SwiftUI
+import SwiftData
 import Charts
 
 struct DatePickerPopover: View {
+//    @Environment(\.modelContext) var modelContext
+    @Query var transactions: [Transaction]
+    
     @Binding var currDate: Date
     
     @State var showMonthSelect: Bool = false

@@ -5,6 +5,8 @@ import SwiftUI
 import SwiftData
 
 struct ItemsView: View {
+    @AppStorage("iSortKey") var sortKeyPathHelper: Int = 0
+    
     var body: some View {
         ItemsListView()
     }

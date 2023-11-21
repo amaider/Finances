@@ -31,7 +31,7 @@ struct TransactionNewSheet: View {
         _dateInput = State(initialValue: transaction?.date ?? .now)
         _itemsInput = State(initialValue: transaction?.items ?? [])
         _documentsInput = State(initialValue: transaction?.documents ?? [])
-        _categoryInput = State(initialValue: (transaction?.category ?? Category(name: "other", amount: Decimal(0))))
+        _categoryInput = State(initialValue: (transaction?.category ?? Category(name: "other")))
         _noteInput = State(initialValue: transaction?.note ?? "")
     }
     
@@ -135,7 +135,7 @@ struct TransactionNewSheet: View {
     private func fileImporterCompletion(_ result: Result<URL, any Error>) {
         switch result {
             case .success(let url):
-                let newDocument: Document = Document(url: url, size: 0)
+                let newDocument: Document = Document(url: url)
                 documentsInput.append(newDocument)
             case .failure(let error):
                 print("Error fileImporter: \(error.localizedDescription)")
@@ -152,6 +152,31 @@ struct TransactionNewSheet: View {
     }
     
     
+    private func save() {
+        /// fetch for existing old transaction, if not found create one and insert it
+        let transactionDescription: FetchDescriptor<Transaction> = FetchDescriptor(predicate: #Predicate { return transaction == nil ? false : ($0 == transaction!) } )
+        var transaction: Transaction? = try? modelContext.fetch(transactionDescription, batchSize: 1).first
+        
+        if transaction == nil {
+            transaction = Transaction(date: dateInput, note: noteInput)
+            modelContext.insert(transaction!)
+        }
+        
+        transaction?.date = dateInput
+        transaction?.note = noteInput
+        
+        if transaction?.shop?.name != shopInput || transaction?.shop?.location != locationInput {
+            print("different shop")
+            transaction?.shop?.remove(transaction: transaction!)
+            
+            let shop: Shop = (try? modelContext.fetch(FetchDescriptor<Shop>(predicate: #Predicate { $0.name == shopInput && $0.location == locationInput } ), batchSize: 1).first) ?? Shop(name: shopInput, location: locationInput, color: nil)
+            transaction?.shop = shop
+        }
+        
+        
+        transaction?.shop?.update()
+        transaction?.category?.update()
+    }
     // todo: check for existing transaction like shop/category so you can combine both ifs into one branch/thing
     private func saveTransaction() {
         if transaction == nil {
@@ -162,14 +187,14 @@ struct TransactionNewSheet: View {
             transaction.amount = transaction.items?.reduce(0, { $0 + $1.amount }) ?? 0
             
             let shops: [Shop]? = try? modelContext.fetch(FetchDescriptor<Shop>())
-            let shop: Shop = shops?.first(where: { $0.name == shopInput && $0.location == locationInput }) ?? Shop(name: shopInput, location: locationInput, color: nil, transactionsCount: 0, amount: Decimal(0))
+            let shop: Shop = shops?.first(where: { $0.name == shopInput && $0.location == locationInput }) ?? Shop(name: shopInput, location: locationInput, color: nil)
             shop.transactionsCount = shop.transactions?.count ?? 0
             shop.amount += transaction.amount
             transaction.shop = shop
             
             transaction.documents = documentsInput
             
-            let category: Category = categories.first(where: { $0 == categoryInput }) ?? categories.first(where: { $0.name == "nil" }) ?? Category(name: "nil", amount: Decimal(0))
+            let category: Category = categories.first(where: { $0 == categoryInput }) ?? categories.first(where: { $0.name == "nil" }) ?? Category(name: "nil")
             category.amount += transaction.amount
             transaction.category = category
             
@@ -191,7 +216,7 @@ struct TransactionNewSheet: View {
                 // transaction?.shop?.delete()
                 
                 let shops: [Shop]? = try? modelContext.fetch(FetchDescriptor<Shop>())
-                let shop: Shop = shops?.first(where: { $0.name == shopInput && $0.location == locationInput }) ?? Shop(name: shopInput, location: locationInput, color: nil, transactionsCount: 0, amount: Decimal(0))
+                let shop: Shop = shops?.first(where: { $0.name == shopInput && $0.location == locationInput }) ?? Shop(name: shopInput, location: locationInput, color: nil)
                 shop.amount += transaction!.amount
                 transaction?.shop = shop
                 shop.transactionsCount = shop.transactions?.count ?? 0
@@ -204,7 +229,7 @@ struct TransactionNewSheet: View {
                 print("diff category")
                 // transaction?.category?.delete()
                 
-                let category: Category = categories.first(where: { $0 == categoryInput }) ?? categories.first(where: { $0.name == "nil" }) ?? Category(name: "nil", amount: Decimal(0))
+                let category: Category = categories.first(where: { $0 == categoryInput }) ?? categories.first(where: { $0.name == "nil" }) ?? Category(name: "nil")
                 category.amount += transaction!.amount
                 transaction?.category = category
             }

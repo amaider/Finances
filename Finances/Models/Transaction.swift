@@ -16,6 +16,7 @@ import SwiftUI
     var documents: [Document]?
     var category: Category?
     
+    /// transient values as normal properties to be able to sort with them
 //    @Transient
 //    @Attribute(.ephemeral) var searchTerms: Set<String> {
 //        var result: Set<String> = []
@@ -134,10 +135,7 @@ import SwiftUI
         
         /// replace these with @Relationship(deleteRules:) ?
         if let shop: Shop = self.shop {
-            /// delete from shop
-            shop.transactions?.removeAll(where: { $0 === self })
-            /// delete shop if empty
-            if shop.transactions?.isEmpty ?? true { context.delete(shop) }
+            shop.remove(transaction: self)
         }
         if let category: Category = self.category {
             /// delete from category
@@ -160,8 +158,8 @@ import SwiftUI
     
     static func example() -> Transaction {
         let transaction: Transaction = .init(shop: nil, date: .now, amount: Decimal(1234), items: nil, documents: nil, category: nil, note: "", searchTerms: "")
-        transaction.shop = .init(name: "Rewe", location: "Mitte", color: .red, transactionsCount: 0, amount: Decimal(0))
-        transaction.category = .init(name: "Food", amount: Decimal(0))
+        transaction.shop = .init(name: "Rewe", location: "Mitte", color: .red)
+        transaction.category = Category(name: "Food")
         return transaction
     }
     

@@ -21,9 +21,9 @@ let previewContainer: ModelContainer = {
                 let colorInput: Color? = shopColorsDict[columns[1]]
                 
                 let categoryInput: String = shopCategoryDict[columns[1]] ?? "other"
-                let category: Category = Category(name: categoryInput, amount: Decimal(0))
+                let category: Category = Category(name: categoryInput)
                 
-                let shop: Shop = .init(name: columns[1], location: "", color: colorInput, transactionsCount: 0, amount: Decimal(0))
+                let shop: Shop = .init(name: columns[1], location: "", color: colorInput)
                 let date: Date = Formatter.dateFormatter.date(from: columns[0]) ?? .now
                 let amount: Decimal = Decimal((Double(columns[3]) ?? 0) * 100) * -1
                 let note: String = [columns[4], columns[6]].joined(separator: "\n")

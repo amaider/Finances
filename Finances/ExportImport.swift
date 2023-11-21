@@ -4,6 +4,12 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
+class DispatchQueueSingleton {
+    static let shared = DispatchQueue.global(qos: .background)
+    
+    private init() {}
+}
+
 // struct JSONDocument: FileDocument {
 //     static var readableContentTypes: [UTType] = [.json]
 //     

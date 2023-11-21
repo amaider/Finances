@@ -5,6 +5,8 @@ import SwiftUI
 import SwiftData
 
 struct DocumentsView: View {
+    @AppStorage("dSortKey") var sortKeyPathHelper: Int = 0
+    
     var body: some View {
         DocumentsListView()
     }

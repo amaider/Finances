@@ -5,6 +5,9 @@ import SwiftUI
 import SwiftData
 
 struct CategoriesView: View {
+    @AppStorage("cSortKey") var sortKeyPathHelper: Int = 0
+    @AppStorage("sortOrder") var sortOrder: Bool = true
+    
     var body: some View {
         CategoriesListView()
     }
@@ -15,7 +18,6 @@ struct CategoriesListView: View {
     @Query(sort: \Category.name) var categories: [Category]
     
     @State private var categoryInput: String = ""
-    @State private var searchTerm: String = ""
     @FocusState private var refocus: Bool
     
     var body: some View {
@@ -26,7 +28,7 @@ struct CategoriesListView: View {
                     .foregroundColor(categories.contains(where: { $0.name == categoryInput }) ? .red : nil)
                     .onSubmit({
                         if categoryInput.isEmpty || categories.contains(where: { $0.name == categoryInput }) { return }
-                        let category: Category = Category(name: categoryInput, amount: 0)
+                        let category: Category = Category(name: categoryInput)
                         modelContext.insert(category)
                     })
             })
@@ -58,7 +60,6 @@ struct CategoriesListView: View {
                 })
             }
         })
-        .searchable(text: $searchTerm)
     }
 }
 

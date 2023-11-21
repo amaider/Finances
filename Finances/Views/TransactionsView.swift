@@ -23,7 +23,7 @@ struct TransactionsView: View {
     @State var showDatePickerPopover: Bool = false
     @State var showTransactionNewSheet: Bool = false
     
-    @AppStorage("sortKeyPathHelper") var sortKeyPathHelper: Int = 0
+    @AppStorage("tSortKey") var sortKeyPathHelper: Int = 0
     @AppStorage("sortOrder") var sortOrder: Bool = true
     var sortDescriptor: SortDescriptor<Transaction> {
         let sortOrder: SortOrder = sortOrder ? .forward : .reverse

@@ -6,7 +6,7 @@ import SwiftData
 import Foundation
 
 struct ShopsView: View {
-    @AppStorage("sortKeyPathHelper") var sortKeyPathHelper: Int = 0
+    @AppStorage("sSortKey") var sortKeyPathHelper: Int = 0
     @AppStorage("sortOrder") var sortOrder: Bool = true
     var sortDescriptor: SortDescriptor<Shop> {
         let sortOrder: SortOrder = sortOrder ? .forward : .reverse
@@ -73,7 +73,7 @@ struct ShopsListView: View {
                                 )
                                 let locationBinding: Binding<String> = Binding(
                                     get: { shop.location ?? "" },
-                                    set: { if $0.isEmpty { shop.location = nil } else { shop.location = $0 } }
+                                    set: { shop.location = $0 }
                                 )
                                 let colorBinding: Binding<Color> = Binding(
                                     get: { shop.colorTransient },
@@ -107,7 +107,7 @@ struct ShopsListView: View {
                         })
                     }, label: {
                         Text(shop.name).foregroundStyle(shop.colorTransient)
-                        if !(shop.location?.isEmpty ?? true) { Text(shop.location!) }
+                        if !shop.location.isEmpty { Text(shop.location) }
                     })
                 })
             })
