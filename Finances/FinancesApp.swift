@@ -13,9 +13,9 @@ struct FinancesApp: App {
             NavigationStack(path: $navPath, root: {
                 SideBarView()
                     .navigationDestination(isPresented: $firstView, destination: {
-                        // TransactionsView()
+                        TransactionsView()
 //                         ShopsView()
-                        SettingsView()
+                        // SettingsView()
                     })
             })
              // NavigationSplitView(sidebar: {

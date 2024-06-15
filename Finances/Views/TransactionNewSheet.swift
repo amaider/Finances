@@ -154,7 +154,8 @@ struct TransactionNewSheet: View {
     
     private func save() {
         /// fetch for existing old transaction, if not found create one and insert it
-        let transactionDescription: FetchDescriptor<Transaction> = FetchDescriptor(predicate: #Predicate { return transaction == nil ? false : ($0 == transaction!) } )
+//        let transactionDescription: FetchDescriptor<Transaction> = FetchDescriptor(predicate: #Predicate { return transaction == nil ? false : ($0 == transaction!) } )
+        let transactionDescription: FetchDescriptor<Transaction> = FetchDescriptor<Transaction>()
         var transaction: Transaction? = try? modelContext.fetch(transactionDescription, batchSize: 1).first
         
         if transaction == nil {

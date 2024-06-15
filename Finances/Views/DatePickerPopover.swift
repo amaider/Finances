@@ -13,6 +13,15 @@ struct DatePickerPopover: View {
     
     @State var showMonthSelect: Bool = false
     
+    @State private var years: Set<Int> = []
+    @State private var months: Set<Int> = []
+    
+    let fmt: ISO8601DateFormatter = {
+        let fmt = ISO8601DateFormatter()
+        fmt.formatOptions = [.withFullTime, .withFullDate]
+        return fmt
+    }()
+    
     var body: some View {
         VStack(content: {
             HStack(content: {
@@ -44,30 +53,46 @@ struct DatePickerPopover: View {
             
             if showMonthSelect {
                 HStack(spacing: 0, content: {
+                    // MARK: Month Picker
                     let monthBinding: Binding<Int> = Binding(
-                        get: { Calendar.current.component(.month, from: currDate) + 119 },
-                        set: { currDate = .iso8601(year: Calendar.current.component(.year, from: currDate), month: ($0+1) % 12) }
-                    )
-                    let yearBinding: Binding<Int> = Binding(
-                        get: { Calendar.current.component(.year, from: currDate) },
-                        set: { currDate = .iso8601(year: $0, month: Calendar.current.component(.month, from: currDate)) }
+                        get: { Calendar.current.component(.month, from: currDate) },
+                        set: { 
+//                            currDate = .iso8601(year: Calendar.current.component(.year, from: currDate), month: ($0+1) % 12, day: 1)
+                            currDate = .iso8601(year: Calendar.current.component(.year, from: currDate), month: $0, day: 1)
+                            print("new month: \($0)", fmt.string(from: currDate))
+                        }
                     )
                     Picker("month", selection: monthBinding, content: {
-                        ForEach(0...240, id: \.self, content: { month in
+                        ForEach(months.sorted(), id: \.self, content: { month in
                             HStack(content: {
-                                Text("\(monthName[month % 12])").tag(month)
+//                                Text(monthName(from: month)).tag(month)
+                                Text("\(month)").tag(month)
                                     .fixedSize()
                                 Spacer()
                             })
                         })
                     })
                     .frame(width: 150)
+                    
+                    // MARK: Year Picker
+                    let yearBinding: Binding<Int> = Binding(
+                        get: { Calendar.current.component(.year, from: currDate) },
+                        set: { newValue in
+                            currDate = .iso8601(year: newValue, month: Calendar.current.component(.month, from: currDate))
+                            months = Set(transactions.filter({ Calendar.current.component(.year, from: $0.date) == newValue }).map({ Calendar.current.component(.month, from: $0.date) }))
+                        }
+                    )
                     Picker("year", selection: yearBinding, content: {
-                        ForEach(1900..<2900, id: \.self, content: { year in
-                            Text(year, format: .number).tag(year)
+                        ForEach(years.sorted(), id: \.self, content: { year in
+                            Text("\(year)").tag(year)
                         })
                     })
                     .frame(width: 100)
+                    .onAppear(perform: {
+                        DispatchQueue.global(qos: .background).async(execute: {
+                            months = Set(transactions.filter({ Calendar.current.component(.year, from: $0.date) == years.sorted().first }).map({ Calendar.current.component(.month, from: $0.date) }))
+                        })
+                    })
                 })
                 .pickerStyle(.wheel)
             }
@@ -78,9 +103,24 @@ struct DatePickerPopover: View {
         })
         .presentationCompactAdaptation(.popover)
         .padding()
+        .onAppear(perform: {
+            showMonthSelect = true
+            DispatchQueue.global(qos: .background).async(execute: {
+                /// add all years
+                years = Set(transactions.map({ Calendar.current.component(.year, from: $0.date) }))
+            })
+        })
     }
     
     let monthName: [String] = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+    
+    func monthName(from monthNumber: Int) -> String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MMMM"
+        let dateComponents = DateComponents(calendar: Calendar.current, month: monthNumber)
+        let date = Calendar.current.date(from: dateComponents)!
+        return dateFormatter.string(from: date)
+    }
 }
 
 #Preview {

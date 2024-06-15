@@ -10,11 +10,11 @@ struct ShopsView: View {
     @AppStorage("sortOrder") var sortOrder: Bool = true
     var sortDescriptor: SortDescriptor<Shop> {
         let sortOrder: SortOrder = sortOrder ? .forward : .reverse
-        switch sortKeyPathHelper {
-            case 2: return SortDescriptor(\.amount, order: sortOrder)
-            case 3: return SortDescriptor(\.colorData, order: sortOrder)
-            case 4: return SortDescriptor(\.transactionsCount, order: sortOrder)
-            default: return SortDescriptor(\.name, order: sortOrder)
+        return switch sortKeyPathHelper {
+            case 2: SortDescriptor(\.amount, order: sortOrder)
+            case 3: SortDescriptor(\.colorData, order: sortOrder)
+            case 4: SortDescriptor(\.transactionsCount, order: sortOrder)
+            default: SortDescriptor(\.name, order: sortOrder)
         }
     }
     
@@ -49,11 +49,8 @@ struct ShopsListView: View {
     init(sort descriptors: [SortDescriptor<Shop>], searchTerm: String) {
         _shops = Query(
             filter: #Predicate {
-                if searchTerm.isEmpty {
-                    return true
-                } else {
-                    return $0.name.localizedStandardContains(searchTerm)
-                }
+                if searchTerm.isEmpty { return true }
+                else { return $0.name.localizedStandardContains(searchTerm) }
             },
             sort: descriptors
         )
@@ -62,11 +59,11 @@ struct ShopsListView: View {
     var body: some View {
         List(content: {
             ForEach(shops, content: { shop in
-                DisclosureGroup(content: {
+                // DisclosureGroup(content: {
                     NavigationLink(destination: {
                         // MARK: ShopEditView
                         VStack(content: {
-                            // Form(content: {
+                            Form(content: {
                                 let nameBinding: Binding<String> = Binding(
                                     get: { shop.name },
                                     set: { if !$0.isEmpty { shop.name = $0 } }
@@ -89,27 +86,39 @@ struct ShopsListView: View {
                                     TextField("Location", text: locationBinding)
                                     ColorPicker("Color", selection: colorBinding)
                                 })
-                            // })
-                            
-                            TransactionsListView(date: .now, sort: [SortDescriptor(\.date)], searchTerm: shop.name)
+                                
+                                TransactionForEachView(date: .now, sort: [SortDescriptor(\.date)], searchTerm: shop.name)
+                                // TransactionsListView(date: .now, sort: [SortDescriptor(\.date)], searchTerm: shop.name)
+                            })
                         })
                     }, label: {
-                        Text("Chart Here")
-                    })
-                }, label: {
-                    LabeledContent(content: {
-                        VStack(alignment: .trailing, spacing: 0, content: {
-                            Text(shop.amount, format: .currency(code: "EUR"))
-                                .foregroundColor(shop.amount > 0 ? .green : .red)
-                                .shadow(radius: 10)
-                            Text("\(shop.transactions?.count ?? 0) Transactions")
-                                .font(.caption)
+                        LabeledContent(content: {
+                            VStack(alignment: .trailing, spacing: 0, content: {
+                                Text(shop.amount, format: .currency(code: "EUR"))
+                                    .foregroundColor(shop.amount > 0 ? .green : .red)
+                                    .shadow(radius: 10)
+                                Text("\(shop.transactions?.count ?? 0) Transactions")
+                                    .font(.caption)
+                            })
+                        }, label: {
+                            Text(shop.name).foregroundStyle(shop.colorTransient)
+                            if !shop.location.isEmpty { Text(shop.location) }
                         })
-                    }, label: {
-                        Text(shop.name).foregroundStyle(shop.colorTransient)
-                        if !shop.location.isEmpty { Text(shop.location) }
                     })
-                })
+                // }, label: {
+                //     LabeledContent(content: {
+                //         VStack(alignment: .trailing, spacing: 0, content: {
+                //             Text(shop.amount, format: .currency(code: "EUR"))
+                //                 .foregroundColor(shop.amount > 0 ? .green : .red)
+                //                 .shadow(radius: 10)
+                //             Text("\(shop.transactions?.count ?? 0) Transactions")
+                //                 .font(.caption)
+                //         })
+                //     }, label: {
+                //         Text(shop.name).foregroundStyle(shop.colorTransient)
+                //         if !shop.location.isEmpty { Text(shop.location) }
+                //     })
+                // })
             })
         })
         .navigationTitle("Shops (\(shops.count))")

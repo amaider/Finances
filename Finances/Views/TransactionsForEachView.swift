@@ -1,16 +1,16 @@
-// 12.11.23, Swift 5.0, macOS 14.0, Xcode 15.0.1
-// Copyright © 2023 amaider. All rights reserved.
+// 2024-06-15, Swift 5.0, macOS 14.4, Xcode 15.2
+// Copyright © 2024 amaider. All rights reserved.
 
 import SwiftUI
 import SwiftData
 
-struct TransactionsListView: View {
+struct TransactionForEachView: View {
     @Environment(\.modelContext) var modelContext
     @Query var transactions: [Transaction]
     
     @State var showMonthReceiptSheet: Bool = false
     var monthAmount: Decimal { transactions.reduce(0, { $0 + $1.amount })}
-//    @State var monthPresentationDetent: PresentationDetent = .height(50)
+    //    @State var monthPresentationDetent: PresentationDetent = .height(50)
     
     
     
@@ -23,7 +23,7 @@ struct TransactionsListView: View {
                 if searchTerm.isEmpty {
                     return $0.date >= startMonth && $0.date <= endMonth
                 } else {
-//                     return $0.shop?.name.localizedStandardContains(searchTerm) ?? false
+                    //                     return $0.shop?.name.localizedStandardContains(searchTerm) ?? false
                     return $0.searchTerms.localizedStandardContains(searchTerm)
                     // $0.searchTerms.contains(where: { return $0.localizedStandardContains(searchTerm) })
                 }
@@ -36,7 +36,7 @@ struct TransactionsListView: View {
     //     if let date: Date = date {
     //         let startMonth: Date = date.startOfMonth()
     //         let endMonth: Date = date.endOfMonth()
-    //         
+    //
     //         _transactions = Query(
     //             filter: #Predicate {
     //                 if searchTerm.isEmpty {
@@ -73,46 +73,45 @@ struct TransactionsListView: View {
     // }
     
     var body: some View {
-        List(content: {
+        if transactions.isEmpty {
+            ContentUnavailableView("No Transactions", systemImage: "doc.richtext")
+                .listRowSeparator(.hidden)
+        } else {
             ForEach(transactions, content: { transaction in
                 NavigationLink(destination: {
-                     TransactionDetailView(transaction: transaction)
+                    TransactionDetailView(transaction: transaction)
                 }, label: {
                     TransactionRowViewSmall(transaction: transaction, isSelected: false)
                 })
                 .buttonStyle(.plain)
             })
-        })
-        .overlay(content: {
-            if transactions.isEmpty {
-                ContentUnavailableView("No Transactions", systemImage: "doc.richtext")
-            }
-        })
-        .listStyle(.plain)
-        .toolbar(content: {
-            ToolbarItemGroup(placement: .bottomBar) {
-                HStack(alignment: .lastTextBaseline, content: {
-                    Text("Total")
-                    Spacer()
-                    Text(monthAmount, format: .currency(code: "EUR"))
-                       .foregroundColor(monthAmount > 0 ? .green : .red)
-                })
-                .font(.title2)
-                .bold()
-                .onTapGesture(perform: { showMonthReceiptSheet.toggle() })
-            }
-        })
-        .sheet(isPresented: $showMonthReceiptSheet, content: {
-            CategorySheet(transactions: transactions)
-                .padding(.horizontal)
-                .presentationDetents([.medium])
-                .presentationBackgroundInteraction(.enabled)
-        })
+            .listRowSeparator(.hidden)
+            .toolbar(content: {
+                ToolbarItemGroup(placement: .bottomBar) {
+                    HStack(alignment: .lastTextBaseline, content: {
+                        Text("Total")
+                        Spacer()
+                        Text(monthAmount, format: .currency(code: "EUR"))
+                            .foregroundColor(monthAmount > 0 ? .green : .red)
+                    })
+                    .font(.title2)
+                    .bold()
+                    .onTapGesture(perform: { showMonthReceiptSheet.toggle() })
+                }
+            })
+            .sheet(isPresented: $showMonthReceiptSheet, content: {
+                CategorySheet(transactions: transactions)
+                    .padding(.horizontal)
+                    .presentationDetents([.medium])
+                    .presentationBackgroundInteraction(.enabled)
+            })
+        }
     }
 }
 
 #Preview {
-    TransactionsListView(date: .iso8601(year: 2021, month: 5), sort: [SortDescriptor(\Transaction.date), SortDescriptor(\Transaction.shop?.name)], searchTerm: "")
+    TransactionForEachView(date: .iso8601(year: 2021, month: 5), sort: [SortDescriptor(\Transaction.date), SortDescriptor(\Transaction.shop?.name)], searchTerm: "")
         .modelContainer(previewContainer)
         .monospaced()
 }
+

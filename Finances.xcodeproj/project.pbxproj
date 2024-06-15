@@ -22,6 +22,7 @@
 		F93A31962B0928AB008C2AA3 /* ItemEditView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F93A31952B0928AB008C2AA3 /* ItemEditView.swift */; };
 		F93A319C2B094426008C2AA3 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F93A319B2B094426008C2AA3 /* SettingsView.swift */; };
 		F93A319E2B0949AD008C2AA3 /* ExportImport.swift in Sources */ = {isa = PBXBuildFile; fileRef = F93A319D2B0949AD008C2AA3 /* ExportImport.swift */; };
+		F9832E652C1DB37A0061E0E3 /* TransactionsForEachView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9832E642C1DB37A0061E0E3 /* TransactionsForEachView.swift */; };
 		F9990A262B081D18004390AA /* SideBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9990A252B081D18004390AA /* SideBarView.swift */; };
 		F9990A282B082C4C004390AA /* ShopsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9990A272B082C4C004390AA /* ShopsView.swift */; };
 		F9B2F0902B03DC610091AD2B /* PreviewContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9B2F08F2B03DC610091AD2B /* PreviewContainer.swift */; };
@@ -60,6 +61,7 @@
 		F93A31952B0928AB008C2AA3 /* ItemEditView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ItemEditView.swift; sourceTree = "<group>"; };
 		F93A319B2B094426008C2AA3 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		F93A319D2B0949AD008C2AA3 /* ExportImport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportImport.swift; sourceTree = "<group>"; };
+		F9832E642C1DB37A0061E0E3 /* TransactionsForEachView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionsForEachView.swift; sourceTree = "<group>"; };
 		F9990A252B081D18004390AA /* SideBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SideBarView.swift; sourceTree = "<group>"; };
 		F9990A272B082C4C004390AA /* ShopsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShopsView.swift; sourceTree = "<group>"; };
 		F9B2F08E2B03D9980091AD2B /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
@@ -136,6 +138,19 @@
 			path = "Preview Content";
 			sourceTree = "<group>";
 		};
+		F9832E662C1DD6470061E0E3 /* SideBar */ = {
+			isa = PBXGroup;
+			children = (
+				F9D8A9982B00E2F9001C2B32 /* TransactionsView.swift */,
+				F9990A272B082C4C004390AA /* ShopsView.swift */,
+				F93A31912B091D83008C2AA3 /* ItemsView.swift */,
+				F93A31932B091DBC008C2AA3 /* DocumentsView.swift */,
+				F93A318F2B091CF6008C2AA3 /* CategoriesView.swift */,
+				F93A319B2B094426008C2AA3 /* SettingsView.swift */,
+			);
+			path = SideBar;
+			sourceTree = "<group>";
+		};
 		F9B2F0992B0421370091AD2B /* HelperViews */ = {
 			isa = PBXGroup;
 			children = (
@@ -161,14 +176,10 @@
 			isa = PBXGroup;
 			children = (
 				F9990A252B081D18004390AA /* SideBarView.swift */,
-				F9D8A9982B00E2F9001C2B32 /* TransactionsView.swift */,
-				F9990A272B082C4C004390AA /* ShopsView.swift */,
-				F93A31912B091D83008C2AA3 /* ItemsView.swift */,
-				F93A31932B091DBC008C2AA3 /* DocumentsView.swift */,
-				F93A318F2B091CF6008C2AA3 /* CategoriesView.swift */,
-				F93A319B2B094426008C2AA3 /* SettingsView.swift */,
+				F9832E662C1DD6470061E0E3 /* SideBar */,
 				F90B25ED2B0AB6BC007F5438 /* DatePickerPopover.swift */,
 				F9D8A9AB2B0177D7001C2B32 /* TransactionsListView.swift */,
+				F9832E642C1DB37A0061E0E3 /* TransactionsForEachView.swift */,
 				F9D8A9A12B0102C0001C2B32 /* TransactionDetailView.swift */,
 				F9D8A9A32B0105C7001C2B32 /* TransactionRowView.swift */,
 				F9B2F0952B03F9070091AD2B /* ReceiptView.swift */,
@@ -266,6 +277,7 @@
 				F93A31922B091D83008C2AA3 /* ItemsView.swift in Sources */,
 				F9D8A9A82B014CF5001C2B32 /* Formatter.swift in Sources */,
 				F9D8A99E2B00E363001C2B32 /* Color+Extension.swift in Sources */,
+				F9832E652C1DB37A0061E0E3 /* TransactionsForEachView.swift in Sources */,
 				F93A31882B0912FC008C2AA3 /* Shop.swift in Sources */,
 				F93A318C2B091310008C2AA3 /* Item.swift in Sources */,
 				F9D8A9A22B0102C0001C2B32 /* TransactionDetailView.swift in Sources */,

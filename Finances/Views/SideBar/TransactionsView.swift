@@ -36,7 +36,11 @@ struct TransactionsView: View {
     @State var searchTerm: String = ""
     
     var body: some View {
-        TransactionsListView(date: currDate, sort: [sortDescriptor, SortDescriptor(\.shop?.name)], searchTerm: searchTerm)
+        List(content: {
+            TransactionForEachView(date: currDate, sort: [sortDescriptor, SortDescriptor(\.shop?.name)], searchTerm: searchTerm)
+        })
+        .listStyle(.plain)
+        // TransactionsListView(date: currDate, sort: [sortDescriptor, SortDescriptor(\.shop?.name)], searchTerm: searchTerm)
             .searchable(text: $searchTerm)
             .sheet(isPresented: $showTransactionNewSheet, content: {
                 NavigationView(content: {
@@ -72,6 +76,18 @@ struct TransactionsView: View {
                 ToolbarItem(placement: .topBarTrailing, content: {
                     Button("new Transaction", systemImage: "plus", action: { showTransactionNewSheet.toggle() })
                 })
+                
+                // ToolbarItem(placement: .bottomBar, content: {
+                //     HStack(alignment: .lastTextBaseline, content: {
+                //         Text("Total")
+                //         Spacer()
+                //         Text(12, format: .currency(code: "EUR"))
+                //             .foregroundColor(12 > 0 ? .green : .red)
+                //     })
+                //     .font(.title2)
+                //     .bold()
+                //     .onTapGesture(perform: {  })
+                // })
             })
     }
 }

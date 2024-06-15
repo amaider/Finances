@@ -27,6 +27,8 @@ import SwiftData
     // @Transient var average: Decimal { transactionsCount == 0 ? 0 : amount / Decimal(transactionsCount) }
     var average: Decimal = Decimal(0)    /// average per transaction
     
+    @Transient var counts: Int { transactions?.count ?? 0 }
+    
     // MARK: init
     /// only relationships default initialized, because they get set in transaction, so not necessarry for init
     init(name: String, location: String, color: Color?) {
