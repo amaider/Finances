@@ -13,10 +13,9 @@ struct TransactionsListView: View {
 //    @State var monthPresentationDetent: PresentationDetent = .height(50)
     
     
-    
     init(date: Date, sort descriptors: [SortDescriptor<Transaction>], searchTerm: String) {
-        let startMonth: Date = date.startOfMonth()
-        let endMonth: Date = date.endOfMonth()
+        let startMonth: Date = date.startOf(.month)
+        let endMonth: Date = date.endOf(.month)
         
         _transactions = Query(
             filter: #Predicate {
@@ -34,9 +33,9 @@ struct TransactionsListView: View {
     
     // init(date: Date?, shop: Shop?, category: Category?, sort descriptors: [SortDescriptor<Transaction>], searchTerm: String) {
     //     if let date: Date = date {
-    //         let startMonth: Date = date.startOfMonth()
-    //         let endMonth: Date = date.endOfMonth()
-    //         
+    //         let startMonth: Date = date.startOf(.month)
+    //         let endMonth: Date = date.endOf(.month)
+    //
     //         _transactions = Query(
     //             filter: #Predicate {
     //                 if searchTerm.isEmpty {
@@ -90,7 +89,7 @@ struct TransactionsListView: View {
         })
         .listStyle(.plain)
         .toolbar(content: {
-            ToolbarItemGroup(placement: .bottomBar) {
+            ToolbarItemGroup(placement: .bottomBar, content: {
                 HStack(alignment: .lastTextBaseline, content: {
                     Text("Total")
                     Spacer()
@@ -100,7 +99,7 @@ struct TransactionsListView: View {
                 .font(.title2)
                 .bold()
                 .onTapGesture(perform: { showMonthReceiptSheet.toggle() })
-            }
+            })
         })
         .sheet(isPresented: $showMonthReceiptSheet, content: {
             CategorySheet(transactions: transactions)

@@ -9,12 +9,12 @@ struct ReceiptView: View {
     var body: some View {
         GroupBox(content: {
             VStack(spacing: 3, content: {
-                Text(transaction.shop?.name ?? "nan")
+                Text(transaction.shop?.name ?? "nil")
                     .font(.title)
                     .bold()
                 
-                if let location: String = transaction.shop?.location {
-                    Text(location)
+                if let address: String = transaction.shop?.address {
+                    Text(address)
                         .font(.subheadline)
                 }
                 

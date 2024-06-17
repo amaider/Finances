@@ -19,76 +19,123 @@ import SwiftUI
 import SwiftData
 
 struct TransactionsView: View {
-    @State var currDate: Date = .iso8601(year: 2023, month: 11)
+    @Environment(\.modelContext) var modelContext
+    
+    @State var currDate: Date = .iso8601(year: 2023, month: 8)
     @State var showDatePickerPopover: Bool = false
     @State var showTransactionNewSheet: Bool = false
+    @State var showSumCategorySheet: Bool = false
     
-    @AppStorage("tSortKey") var sortKeyPathHelper: Int = 0
-    @AppStorage("sortOrder") var sortOrder: Bool = true
-    var sortDescriptor: SortDescriptor<Transaction> {
-        let sortOrder: SortOrder = sortOrder ? .forward : .reverse
-        switch sortKeyPathHelper {
-            case 1: return SortDescriptor(\Transaction.shop?.name, order: sortOrder)
-            case 2: return SortDescriptor(\Transaction.amount, order: sortOrder)
-            default: return SortDescriptor(\Transaction.date, order: sortOrder)
-        }
-    }
+    @State var dateSpan: Calendar.Component = .year
     @State var searchTerm: String = ""
+    
+    /// SortDescriptor with sortOrder in .tag() is not selectable
+    @State var sortDescriptorPicker = SortDescriptor(\Transaction.shop?.name)
+    @State var sortOrder: SortOrder = .forward
+    var sortDescriptors: [SortDescriptor<Transaction>] {
+        var sortDescriptor = sortDescriptorPicker
+        sortDescriptor.order = sortOrder
+        return [sortDescriptor, SortDescriptor(\.shop?.name)]
+    }
+    
+    var transactions: [Transaction] {
+        let startDate: Date = currDate.startOf(dateSpan)
+        let endDate: Date = currDate.endOf(dateSpan)
+        let predicate: Predicate<Transaction> = #Predicate {
+            if searchTerm.isEmpty {
+                return $0.date >= startDate && $0.date <= endDate
+            } else {
+                return $0.searchTerms.localizedStandardContains(searchTerm)
+            }
+        }
+        
+        var sort: SortDescriptor = sortDescriptorPicker
+        sort.order = sortOrder
+        let sortBy: [SortDescriptor<Transaction>] = [sort, SortDescriptor(\.shop?.name)]
+        
+        let transactionDescription: FetchDescriptor<Transaction> = FetchDescriptor<Transaction>(predicate: predicate, sortBy: sortBy)
+        let transactions: [Transaction]? = try? modelContext.fetch(transactionDescription)
+        return transactions ?? []
+    }
+    var sumAmount: Decimal { transactions.reduce(0, { $0 + $1.amount })}
     
     var body: some View {
         List(content: {
-            TransactionForEachView(date: currDate, sort: [sortDescriptor, SortDescriptor(\.shop?.name)], searchTerm: searchTerm)
+            if transactions.isEmpty {
+                ContentUnavailableView("No Transactions", systemImage: "doc.richtext")
+                    .listRowSeparator(.hidden)
+            } else {
+                ForEach(transactions, content: { transaction in
+                    NavigationLink(destination: {
+                        TransactionDetailView(transaction: transaction)
+                    }, label: {
+                        TransactionRowViewSmall(transaction: transaction, isSelected: false)
+                    })
+                    .buttonStyle(.plain)
+                })
+                .listRowSeparator(.hidden)
+            }
         })
         .listStyle(.plain)
         // TransactionsListView(date: currDate, sort: [sortDescriptor, SortDescriptor(\.shop?.name)], searchTerm: searchTerm)
-            .searchable(text: $searchTerm)
-            .sheet(isPresented: $showTransactionNewSheet, content: {
-                NavigationView(content: {
-                    TransactionNewSheet(transaction: nil)                    
+        .searchable(text: $searchTerm)
+        .sheet(isPresented: $showTransactionNewSheet, content: {
+            NavigationView(content: {
+                TransactionNewSheet(transaction: nil)
+            })
+        })
+        .toolbar(content: {
+            ToolbarItemGroup(placement: .topBarTrailing, content: {
+                Menu("Sort", systemImage: "line.3.horizontal.decrease.circle", content: {
+                    Picker("Sort", selection: $sortDescriptorPicker, content: {
+                        Text("Date").tag(SortDescriptor<Transaction>(\Transaction.date))
+                        Text("Shop").tag(SortDescriptor<Transaction>(\Transaction.shop?.name))
+                        Text("Amount").tag(SortDescriptor<Transaction>(\Transaction.amount))
+                    })
+                    Picker("Order", selection: $sortOrder, content: {
+                        Text("Forward").tag(SortOrder.forward)
+                        Text("Reverse").tag(SortOrder.reverse)
+                    })
+                    Picker("Date Span", selection: $dateSpan, content: {
+                        Text("Month").tag(Calendar.Component.month)
+                        Text("Year").tag(Calendar.Component.year)
+                    })
                 })
             })
-            .toolbar(content: {
-                ToolbarItemGroup(placement: .topBarTrailing, content: {
-                    Menu("Sort", systemImage: "line.3.horizontal.decrease.circle", content: {
-                        Picker("Sort", selection: $sortKeyPathHelper, content: {
-                            Text("Date").tag(0)
-                            Text("Shop").tag(1)
-                            Text("Amount").tag(2)
-                        })
-                        Picker("Order", selection: $sortOrder, content: {
-                            Text("Forward").tag(true)
-                            Text("Reverse").tag(false)
-                        })
-                    })
+            ToolbarItemGroup(placement: .principal, content: {
+                Button(action: { showDatePickerPopover.toggle() }, label: {
+                    Text(currDate.formatted(.dateTime.year().month()))
                 })
-                ToolbarItemGroup(placement: .principal, content: {
-                    Button(action: { showDatePickerPopover.toggle() }, label: {
-                        Text(currDate.formatted(.dateTime.year().month()))
-                    })
-                    .buttonStyle(.bordered)
-                    .foregroundStyle(showDatePickerPopover ? Color.accentColor : Color.primary)
-                    .popover(isPresented: $showDatePickerPopover, content: {
-                        DatePickerPopover(currDate: $currDate)
-                            .frame(minWidth: 300)
-                            .padding(.horizontal)
-                    })
+                .buttonStyle(.bordered)
+                .foregroundStyle(showDatePickerPopover ? Color.accentColor : Color.primary)
+                .popover(isPresented: $showDatePickerPopover, content: {
+                    DatePickerPopover(currDate: $currDate)
+                        .frame(minWidth: 300)
+                        .padding(.horizontal)
                 })
-                ToolbarItem(placement: .topBarTrailing, content: {
-                    Button("new Transaction", systemImage: "plus", action: { showTransactionNewSheet.toggle() })
-                })
-                
-                // ToolbarItem(placement: .bottomBar, content: {
-                //     HStack(alignment: .lastTextBaseline, content: {
-                //         Text("Total")
-                //         Spacer()
-                //         Text(12, format: .currency(code: "EUR"))
-                //             .foregroundColor(12 > 0 ? .green : .red)
-                //     })
-                //     .font(.title2)
-                //     .bold()
-                //     .onTapGesture(perform: {  })
-                // })
             })
+            ToolbarItem(placement: .topBarTrailing, content: {
+                Button("New Transaction", systemImage: "plus", action: { showTransactionNewSheet.toggle() })
+            })
+            
+            ToolbarItem(placement: .bottomBar, content: {
+                HStack(alignment: .lastTextBaseline, content: {
+                    Text("Total")
+                    Spacer()
+                    Text(sumAmount, format: .currency(code: "EUR"))
+                        .foregroundColor(sumAmount > 0 ? .green : .red)
+                })
+                .font(.title2)
+                .bold()
+                .onTapGesture(perform: { showSumCategorySheet.toggle() })
+            })
+        })
+        .sheet(isPresented: $showSumCategorySheet, content: {
+            CategorySheet(transactions: transactions)
+                .padding(.horizontal)
+                .presentationDetents([.medium])
+                .presentationBackgroundInteraction(.enabled)
+        })
     }
 }
 

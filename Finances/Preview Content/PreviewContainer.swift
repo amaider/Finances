@@ -4,6 +4,7 @@
 import Foundation
 import SwiftData
 import SwiftUI
+import MapKit
 
 let previewContainer: ModelContainer = {
     do {
@@ -18,16 +19,18 @@ let previewContainer: ModelContainer = {
             for row in rows {
                 let columns = row.components(separatedBy: ",")
                 
+                let mapItem: MKMapItem = shopMapItemDict[columns[1]] ?? previewMapItem
                 let colorInput: Color? = shopColorsDict[columns[1]]
                 
                 let categoryInput: String = shopCategoryDict[columns[1]] ?? "other"
                 let category: Category = Category(name: categoryInput)
                 
-                let shop: Shop = .init(name: columns[1], location: "", color: colorInput)
+                let shop: Shop = .init(name: columns[1], address: "", mapItem: mapItem, color: colorInput)
                 let date: Date = Formatter.dateFormatter.date(from: columns[0]) ?? .now
                 let amount: Decimal = Decimal((Double(columns[3]) ?? 0) * 100) * -1
                 let note: String = [columns[4], columns[6]].joined(separator: "\n")
-                let transaction: Transaction = .init(shop: shop, date: date, amount: amount, items: [], documents: [], category: category, note: note, searchTerms: "")
+                let item: Item = Item(name: shop.name, note: "", volume: "", amount: amount, transaction: nil, date: nil)
+                let transaction: Transaction = .init(shop: shop, date: date, items: [item], documents: [], category: category, note: note)
                 context.insert(transaction)
             }
             

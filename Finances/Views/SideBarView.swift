@@ -39,8 +39,6 @@ struct SideBarView: View {
             }, footer: {
                Text("t: \(transactions.count), s: \(shops.count), c: \(categories.count), d: \(documents.count), i: \(items.count)")
             })
-            
-            Button("Delete All Transactions", action: deleteTransaction)
         })
         .navigationTitle("Lists")
         .onChange(of: scenePhase, {
@@ -73,27 +71,5 @@ struct SideBarView: View {
         } else {
             NSLog("Authentication Error: \(error?.localizedDescription ?? "")")
         }
-    }
-    
-    private func deleteTransaction() {
-//        transactions.forEach({ $0.deleteOtherRelationships() })
-        var maxCount: Int = transactions.count
-        for (index, element) in transactions.enumerated() {
-            print("t\(index+1)/\(maxCount)")
-            element.deleteOtherRelationships()
-        }
-        
-        maxCount = documents.count
-        for (index, element) in documents.enumerated() {
-            print("d\(index+1)/\(maxCount)")
-            element.delete()
-        }
-        
-        maxCount = items.count
-        for (index, element) in items.enumerated() {
-            print("i\(index+1)/\(maxCount)")
-            element.delete()
-        }
-
     }
 }

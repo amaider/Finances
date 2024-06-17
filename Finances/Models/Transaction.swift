@@ -6,7 +6,6 @@ import SwiftUI
 
 @Model class Transaction: Codable {
     var date: Date
-    var amount: Decimal
     var note: String
     
     var shop: Shop?
@@ -16,8 +15,11 @@ import SwiftUI
     var documents: [Document]?
     var category: Category?
     
-    /// transient values as normal properties to be able to sort with them
-//    @Transient
+    /// Cannot use sort by transient variables
+    // @Attribute(.ephemeral) var amountT: Decimal {
+    //     items?.reduce(0, { $0 + $1.amount }) ?? 0
+    // }
+    private(set) var amount: Decimal = 0
 //    @Attribute(.ephemeral) var searchTerms: Set<String> {
 //        var result: Set<String> = []
 //
@@ -36,18 +38,18 @@ import SwiftUI
 //
 //        return result
 //    }
-    var searchTerms: String
+    private(set) var searchTerms: String = ""
     
     
-    init(shop: Shop? = nil, date: Date, amount: Decimal = Decimal(0), items: [Item]? = [], documents: [Document]? = [], category: Category? = nil, note: String, searchTerms: String = "") {
+    init(shop: Shop? = nil, date: Date, items: [Item]? = [], documents: [Document]? = [], category: Category? = nil, note: String) {
         self.shop = shop
         self.date = date
-        self.amount = amount
         self.category = category
         self.items = items
         self.documents = documents
         self.note = note
-        self.searchTerms = searchTerms
+        
+        updateTransient()
     }
     
     /// create "local" transaction with all new relationships
@@ -78,10 +80,29 @@ import SwiftUI
     func duplicate() {
         guard let context = self.modelContext else { return }
         
-        let transaction: Transaction = .init(shop: self.shop, date: self.date, amount: self.amount, items: self.items, documents: self.documents, category: self.category, note: self.note, searchTerms: self.searchTerms)
+        let transaction: Transaction = .init(shop: self.shop, date: self.date, items: self.items, documents: self.documents, category: self.category, note: self.note)
 //        self.shop?.transactions.append(transaction)
 //        self.category?.transactions.append(transaction)
         context.insert(transaction)
+    }
+    
+    func updateTransient() {
+        self.amount = items?.reduce(0, { $0 + $1.amount }) ?? 0
+        self.searchTerms = {
+            var result: Set<String?> = []
+            
+            ([self.shop?.name,
+              Formatter.dateFormatter.string(from: self.date),
+              self.date.formatted(date: .complete, time: .omitted),
+              Formatter.currencyFormatter.string(from: self.amount as NSDecimalNumber),
+              self.category?.name,
+              self.note]
+             + (self.items?.flatMap({ [$0.name, $0.note, $0.volume, Formatter.currencyFormatter.string(from: $0.amount as NSDecimalNumber)] }) ?? [])
+             + (self.documents?.map({ $0.url.lastPathComponent }) ?? [])
+            ).forEach({ result.insert($0) })
+            
+            return result.compactMap({ $0 ?? "" }).joined()
+        }()
     }
     
     // func update2(shop: Shop?, date: Date, amount: Decimal, category: Category?, items: [Item]?, documents: [Document]?, note: String) {
@@ -100,7 +121,7 @@ import SwiftUI
     //         
     //         /// find new shop
     //         let shops: [Shop]? = try? self.modelContext?.fetch(FetchDescriptor<Shop>())
-    //         let shop: Shop = shops?.first(where: { $0.name == newTransaction.shop?.name }) ?? Shop(name: newTransaction.shop?.name ?? "Nan", location: "", color: nil, amount: Decimal(0), transactionsCount: 0)
+    //         let shop: Shop = shops?.first(where: { $0.name == newTransaction.shop?.name }) ?? Shop(name: newTransaction.shop?.name ?? "Nan", address: "", color: nil, amount: Decimal(0), transactionsCount: 0)
     //         if !(shops?.contains(shop) ?? false) { self.modelContext?.insert(shop) }
     //         
     //         self.shop = shop
@@ -157,8 +178,8 @@ import SwiftUI
     }
     
     static func example() -> Transaction {
-        let transaction: Transaction = .init(shop: nil, date: .now, amount: Decimal(1234), items: nil, documents: nil, category: nil, note: "", searchTerms: "")
-        transaction.shop = .init(name: "Rewe", location: "Mitte", color: .red)
+        let transaction: Transaction = Transaction(shop: nil, date: .now, items: nil, documents: nil, category: nil, note: "")
+        transaction.shop = Shop(name: "Rewe", address: "Mitte", mapItem: shopMapItemDict["Rewe"] ?? previewMapItem, color: .red)
         transaction.category = Category(name: "Food")
         return transaction
     }

@@ -4,11 +4,15 @@
 import SwiftUI
 import UniformTypeIdentifiers
 import SwiftData
+import MapKit
 
 struct TransactionNewSheet: View {
     @Environment(\.modelContext) var modelContext
     @Environment(\.dismiss) var dismiss
     @Query(sort: \Category.name) var categories: [Category]
+    
+    // @State var locationService: LocationService = .init()
+    @Query var shops: [Shop]
     
     var transaction: Transaction?
     
@@ -27,23 +31,31 @@ struct TransactionNewSheet: View {
     init(transaction: Transaction?) {
         self.transaction = transaction
         _shopInput = State(initialValue: transaction?.shop?.name ?? "")
-        _locationInput = State(initialValue: transaction?.shop?.location ?? "")
+        _locationInput = State(initialValue: transaction?.shop?.address ?? "")
         _dateInput = State(initialValue: transaction?.date ?? .now)
         _itemsInput = State(initialValue: transaction?.items ?? [])
         _documentsInput = State(initialValue: transaction?.documents ?? [])
-        _categoryInput = State(initialValue: (transaction?.category ?? Category(name: "other")))
+        _categoryInput = State(initialValue: (transaction?.category ?? Category(name: "nil")))
         _noteInput = State(initialValue: transaction?.note ?? "")
     }
     
     var body: some View {
         Form(content: {
+            // MARK: Shop & Location
             Section(content: {
                 TextField("Shop", text: $shopInput).focused($currFocus, equals: .shopName)
                 TextField("Location", text: $locationInput).focused($currFocus, equals: .shopLocation)
+                
+                NavigationLink(destination: {
+                    MapView(isPreview: false, searchTerm: nil, selectedShop: .constant(nil))
+                }, label: {
+                    MapView(isPreview: true, searchTerm: nil, selectedShop: .constant(transaction?.shop))
+                        .frame(height: 100)
+                })
             })
-            
+            // MARK: Date & Items
             DatePicker("Date", selection: $dateInput, displayedComponents: .date).focusable().focused($currFocus, equals: .date)
-            
+
             Section(content: {
                 List(content: {
                     ForEach(itemsInput, content: { item in
@@ -65,7 +77,7 @@ struct TransactionNewSheet: View {
                     Text(itemsInput.reduce(Decimal(0), { $0 + $1.amount }), format: .currency(code: "EUR"))
                 })
             })
-            
+            // MARK: Documents
             Section("Documents", content: {
                 ForEach(documentsInput, content: { document in
                     DocumentRowView(url: document.url)
@@ -82,6 +94,7 @@ struct TransactionNewSheet: View {
             })
             
             Section(content: {
+                // MARK: Category
                 Picker("Category", selection: $categoryInput, content: {
                     ForEach(categories, content: { category in
                         Text(category.name).tag(category)
@@ -89,9 +102,10 @@ struct TransactionNewSheet: View {
                 })
                 .focused($currFocus, equals: .categoryPicker)
                 .onAppear(perform: {
-                    guard let category: Category = categories.first(where: { $0.name == transaction?.category?.name }) ?? categories.first else { return }
+                    guard let category: Category = categories.first(where: { $0.name == transaction?.category?.name }) ?? categories.first(where: { $0.name == "nil" }) else { return }
                     categoryInput = category
                 })
+                // MARK: Notes
                 TextField("Notes", text: $noteInput, prompt: Text("Notes"), axis: .vertical)
                     .frame(height: 100)
                     .background(.red.opacity(0.3))
@@ -103,6 +117,7 @@ struct TransactionNewSheet: View {
                     .frame(maxWidth: .infinity)
             })
         })
+        // MARK: Toolbar
         .toolbar(content: {
             ToolbarItem(placement: .topBarLeading, content: {
                 Button("Cancel", action: { dismiss() })
@@ -113,6 +128,10 @@ struct TransactionNewSheet: View {
                     .disabled(shopInput.isEmpty)
                     .focusedButton($currFocus, equals: .enter)
             })
+        })
+        .task(priority: .background, {
+//            let location: CLLocation? = await locationService.requestLocation()
+            // _shops = Query<Shop>(filter: #Predicate {true}, sort: [SortDescriptor<Shop>(\Shop.title)])   
         })
         .onAppear(perform: {
             if shopInput.isEmpty { currFocus = .shopName }
@@ -166,11 +185,11 @@ struct TransactionNewSheet: View {
         transaction?.date = dateInput
         transaction?.note = noteInput
         
-        if transaction?.shop?.name != shopInput || transaction?.shop?.location != locationInput {
+        if transaction?.shop?.name != shopInput || transaction?.shop?.address != locationInput {
             print("different shop")
             transaction?.shop?.remove(transaction: transaction!)
             
-            let shop: Shop = (try? modelContext.fetch(FetchDescriptor<Shop>(predicate: #Predicate { $0.name == shopInput && $0.location == locationInput } ), batchSize: 1).first) ?? Shop(name: shopInput, location: locationInput, color: nil)
+            let shop: Shop = (try? modelContext.fetch(FetchDescriptor<Shop>(predicate: #Predicate { $0.name == shopInput && $0.address == locationInput } ), batchSize: 1).first) ?? Shop(name: shopInput, address: locationInput, mapItem: previewMapItem, color: nil)
             transaction?.shop = shop
         }
         
@@ -185,10 +204,9 @@ struct TransactionNewSheet: View {
             modelContext.insert(transaction)
             
             itemsInput.forEach({ transaction.items?.append(Item(name: $0.name, note: $0.note, volume: $0.volume, amount: $0.amount, transaction: nil, date: dateInput))})
-            transaction.amount = transaction.items?.reduce(0, { $0 + $1.amount }) ?? 0
             
             let shops: [Shop]? = try? modelContext.fetch(FetchDescriptor<Shop>())
-            let shop: Shop = shops?.first(where: { $0.name == shopInput && $0.location == locationInput }) ?? Shop(name: shopInput, location: locationInput, color: nil)
+            let shop: Shop = shops?.first(where: { $0.name == shopInput && $0.address == locationInput }) ?? Shop(name: shopInput, address: locationInput, mapItem: previewMapItem, color: nil)
             shop.transactionsCount = shop.transactions?.count ?? 0
             shop.amount += transaction.amount
             transaction.shop = shop
@@ -199,7 +217,7 @@ struct TransactionNewSheet: View {
             category.amount += transaction.amount
             transaction.category = category
             
-            transaction.searchTerms = getSearchTerms(from: transaction).joined()
+            transaction.updateTransient()
         } else {
             transaction?.date = dateInput
             transaction?.note = noteInput
@@ -209,15 +227,14 @@ struct TransactionNewSheet: View {
 //                transaction?.items?.forEach({ $0.delete() })    // delete old items
                 
                 itemsInput.forEach({ transaction?.items?.append(Item(name: $0.name, note: $0.note, volume: $0.volume, amount: $0.amount, transaction: nil, date: dateInput)) })
-                transaction?.amount = transaction?.items?.reduce(0, { $0 + $1.amount }) ?? Decimal(0)
             }
             
-            if transaction?.shop?.name != shopInput || transaction?.shop?.location != locationInput {
+            if transaction?.shop?.name != shopInput || transaction?.shop?.address != locationInput {
                 print("different shop")
                 // transaction?.shop?.delete()
                 
                 let shops: [Shop]? = try? modelContext.fetch(FetchDescriptor<Shop>())
-                let shop: Shop = shops?.first(where: { $0.name == shopInput && $0.location == locationInput }) ?? Shop(name: shopInput, location: locationInput, color: nil)
+                let shop: Shop = shops?.first(where: { $0.name == shopInput && $0.address == locationInput }) ?? Shop(name: shopInput, address: locationInput, mapItem: previewMapItem, color: nil)
                 shop.amount += transaction!.amount
                 transaction?.shop = shop
                 shop.transactionsCount = shop.transactions?.count ?? 0
@@ -235,7 +252,7 @@ struct TransactionNewSheet: View {
                 transaction?.category = category
             }
             
-            transaction?.searchTerms = getSearchTerms(from: transaction!).joined()
+            transaction?.updateTransient()
         }
         
         

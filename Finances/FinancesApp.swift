@@ -30,3 +30,12 @@ struct FinancesApp: App {
 //        .modelContainer(for: Transaction.self, inMemory: false, isAutosaveEnabled: true, isUndoEnabled: true)
     }
 }
+
+func testThis(name: String, function: () -> Void) {
+    let startTime = DispatchTime.now()
+    function()
+    let endTime = DispatchTime.now()
+    let elapsedTime = endTime.uptimeNanoseconds - startTime.uptimeNanoseconds
+    let elapsedTimeInSeconds = Double(elapsedTime) / 1_000_000_000
+    print("\(name): \(elapsedTimeInSeconds) sec".replacingOccurrences(of: ".", with: ","))
+}

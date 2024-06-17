@@ -5,6 +5,8 @@ import SwiftUI
 import SwiftData
 import Charts
 
+// TODO: when to get the months Set or maybe always display all months
+
 struct DatePickerPopover: View {
 //    @Environment(\.modelContext) var modelContext
     @Query var transactions: [Transaction]
@@ -40,11 +42,11 @@ struct DatePickerPopover: View {
                 
                 Group(content: {
                     Image(systemName: "chevron.left")
-                        .onTapGesture(perform: { currDate = currDate.getPreviousMonth() })
+                        .onTapGesture(perform: { currDate = currDate.byAdding(.month, value: -1) })
                     Spacer()
                         .frame(width: 25)
                     Image(systemName: "chevron.right")
-                        .onTapGesture(perform: { currDate = currDate.getNextMonth() })
+                        .onTapGesture(perform: { currDate = currDate.byAdding(.month, value: 1) })
                 })
                 .bold()
                 .foregroundStyle(.blue)
@@ -56,17 +58,13 @@ struct DatePickerPopover: View {
                     // MARK: Month Picker
                     let monthBinding: Binding<Int> = Binding(
                         get: { Calendar.current.component(.month, from: currDate) },
-                        set: { 
-//                            currDate = .iso8601(year: Calendar.current.component(.year, from: currDate), month: ($0+1) % 12, day: 1)
-                            currDate = .iso8601(year: Calendar.current.component(.year, from: currDate), month: $0, day: 1)
-                            print("new month: \($0)", fmt.string(from: currDate))
-                        }
+                        set: { currDate = .iso8601(year: Calendar.current.component(.year, from: currDate), month: $0, day: 1) }
                     )
                     Picker("month", selection: monthBinding, content: {
                         ForEach(months.sorted(), id: \.self, content: { month in
                             HStack(content: {
-//                                Text(monthName(from: month)).tag(month)
-                                Text("\(month)").tag(month)
+                               Text(monthName(from: month))
+                                    .tag(month)
                                     .fixedSize()
                                 Spacer()
                             })

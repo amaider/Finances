@@ -4,24 +4,24 @@
 import SwiftUI
 
 struct CategorySheet: View {
-    let transactions: [Transaction]
-    
-    struct CategoryList: Identifiable {
-        let id: UUID = UUID()
-        let name: String
-        let transactions: [Transaction]
-        var amount: Decimal { transactions.reduce(0, { $0 + $1.amount}) }
-    }
-    var categories: [CategoryList] {
-        let categoryDict = transactions.reduce(into: [String: [Transaction]](), { result, transaction in
-            result[transaction.category?.name ?? "nan", default: []].append(transaction)
-        })
-    
-        return categoryDict.reduce(into: [CategoryList](), { result, entry in
-            result.append(CategoryList(name: entry.key, transactions: entry.value))
-        })
-    }
     @State var collapseHelper: Set<String> = []
+    
+    let transactions: [Transaction]
+    let categories: [CategoryList]
+    
+    init(transactions: [Transaction]) {
+        self.transactions = transactions
+        self.categories = {
+            let categoryDict = transactions.reduce(into: [String: [Transaction]](), { result, transaction in
+                result[transaction.category?.name ?? "nan", default: []].append(transaction)
+            })
+            
+            return categoryDict.reduce(into: [CategoryList](), { result, entry in
+                result.append(CategoryList(name: entry.key, transactions: entry.value))
+            })
+        }()
+    }
+    
     
     var body: some View {
         ScrollView(content: {
@@ -58,6 +58,14 @@ struct CategorySheet: View {
         if collapseHelper.remove(section) == nil {
             collapseHelper.insert(section)
         }
+    }
+    
+    // MARK: CategoryList Struct
+    struct CategoryList: Identifiable {
+        let id: UUID = UUID()
+        let name: String
+        let transactions: [Transaction]
+        var amount: Decimal { transactions.reduce(0, { $0 + $1.amount}) }
     }
 }
 

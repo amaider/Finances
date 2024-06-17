@@ -14,6 +14,7 @@ struct TransactionDetailView: View {
     
     var body: some View {
         ScrollView(content: {
+            // MARK: Receipt
             ReceiptView(transaction: transaction)
             
             // MARK: Documents
@@ -45,17 +46,6 @@ struct TransactionDetailView: View {
                 LabeledContent(content: {
                     Image(systemName: "tag")
                 }, label: {
-                    // let categoryBinding: Binding<Category> = Binding(
-                    //     get: { transaction.category ?? categories.first(where: { $0.name == "other" }) ?? Category(name: "other") },
-                    //     set: { newValue in transaction.category = newValue }
-                    // )
-                    // Picker("Category Picker", selection: categoryBinding, content: {
-                    //     ForEach(categories, content: { category in
-                    //         Text(category.name).tag(category)
-                    //     })
-                    // })
-                    // .labelsHidden()
-                    
                    Text(transaction.category?.name ?? "nil")
                 })
                 

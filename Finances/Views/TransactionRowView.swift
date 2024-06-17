@@ -3,44 +3,11 @@
 
 import SwiftUI
 
-struct TransactionRowView: View {
-    let transaction: Transaction
-    var body: some View {
-        HStack(alignment: .lastTextBaseline, content: {
-            Text(transaction.shop!.name)
-            
-            Text(transaction.date, format: .dateTime.day().month().year())
-                .opacity(0.6)
-                .font(.pDate)
-            
-            Spacer()
-            
-            Group(content: {
-//                 if transaction.items != nil {
-//                     Image(systemName: "list.bullet")
-//                 }
-                // if transaction.documents != nil {
-                //     Image(systemName: "paperclip")
-                // }
-            })
-            .font(.pDate)
-            
-            Text(transaction.amount, format: .currency(code: "EUR"))
-                .foregroundColor(transaction.amount > 0 ? .green : .red)
-                .shadow(radius: 10)
-        })
-        // .foregroundColor(transaction.shop?.color ?? .red)
-        .lineLimit(1)
-        .font(.pTitle)
-        .cardView(transaction.shop!.colorTransient.opacity(0.2))
-    }
-}
-
 struct TransactionRowViewSmall: View {
     let transaction: Transaction
     let isSelected: Bool
     
-    var transactionColor: Color { transaction.shop?.colorTransient ?? .primary }
+    var transactionColor: Color { transaction.shop?.color ?? .primary }
     var color1: Color { transactionColor.opacity(isSelected ? 1.0 : 0.2) }
     var color2: Color { isSelected ? transactionColor.isDark ? .white : .black : transactionColor }
     
@@ -57,7 +24,7 @@ struct TransactionRowViewSmall: View {
            Divider()
            //     .font(.caption2)
             
-            Text(transaction.shop?.name ?? "no Shop")
+            Text(transaction.shop?.name ?? "nil")
                 .foregroundColor(color2)
             
             Spacer()
@@ -105,7 +72,6 @@ struct TransactionRowViewSmall: View {
 #Preview {
     ModelPreview(content: { transaction in
         VStack(content: {
-            TransactionRowView(transaction: transaction)
             TransactionRowViewSmall(transaction: transaction, isSelected: false)
             TransactionRowViewSmall(transaction: transaction, isSelected: true)
         })

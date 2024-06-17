@@ -5,37 +5,49 @@ import SwiftUI
 import SwiftData
 
 struct TransactionForEachView: View {
-    @Environment(\.modelContext) var modelContext
     @Query var transactions: [Transaction]
     
-    @State var showMonthReceiptSheet: Bool = false
-    var monthAmount: Decimal { transactions.reduce(0, { $0 + $1.amount })}
-    //    @State var monthPresentationDetent: PresentationDetent = .height(50)
-    
-    
-    
-    init(date: Date, sort descriptors: [SortDescriptor<Transaction>], searchTerm: String) {
-        let startMonth: Date = date.startOfMonth()
-        let endMonth: Date = date.endOfMonth()
-        
+    init(sort descriptors: [SortDescriptor<Transaction>]? = nil, searchTerm: String? = nil) {
         _transactions = Query(
             filter: #Predicate {
-                if searchTerm.isEmpty {
-                    return $0.date >= startMonth && $0.date <= endMonth
+                if searchTerm?.isEmpty ?? true {
+                    return true
                 } else {
-                    //                     return $0.shop?.name.localizedStandardContains(searchTerm) ?? false
-                    return $0.searchTerms.localizedStandardContains(searchTerm)
-                    // $0.searchTerms.contains(where: { return $0.localizedStandardContains(searchTerm) })
+                    return $0.searchTerms.localizedStandardContains(searchTerm!)
                 }
             },
-            sort: descriptors
+            sort: descriptors ?? []
         )
+        //        _transactions = Query(filter: Predicate({
+        //            PredicateExpression.build_Conditional(<#T##Test#>, <#T##If#>, <#T##Else#>)
+        //        }))
+    }
+    init(date: Date, span: Calendar.Component, sort descriptors: [SortDescriptor<Transaction>]? = nil, searchTerm: String? = nil) {
+        let startDate: Date = switch span {
+            case .year: date.startOf(.year)
+            default: date.startOf(.month)
+        }
+        let endDate: Date = switch span {
+            case .year: date.endOf(.year)
+            default: date.endOf(.month)
+        }
+        _transactions = Query(
+            filter: #Predicate {
+                if searchTerm?.isEmpty ?? true {
+                    return $0.date >= startDate && $0.date <= endDate
+                } else {
+                    return $0.searchTerms.localizedStandardContains(searchTerm!)
+                }
+            },
+            sort: descriptors ?? []
+        )
+        
     }
     
     // init(date: Date?, shop: Shop?, category: Category?, sort descriptors: [SortDescriptor<Transaction>], searchTerm: String) {
     //     if let date: Date = date {
-    //         let startMonth: Date = date.startOfMonth()
-    //         let endMonth: Date = date.endOfMonth()
+    //         let startMonth: Date = date.startOf(.month)
+    //         let endMonth: Date = date.endOf(.month
     //
     //         _transactions = Query(
     //             filter: #Predicate {
@@ -86,31 +98,12 @@ struct TransactionForEachView: View {
                 .buttonStyle(.plain)
             })
             .listRowSeparator(.hidden)
-            .toolbar(content: {
-                ToolbarItemGroup(placement: .bottomBar) {
-                    HStack(alignment: .lastTextBaseline, content: {
-                        Text("Total")
-                        Spacer()
-                        Text(monthAmount, format: .currency(code: "EUR"))
-                            .foregroundColor(monthAmount > 0 ? .green : .red)
-                    })
-                    .font(.title2)
-                    .bold()
-                    .onTapGesture(perform: { showMonthReceiptSheet.toggle() })
-                }
-            })
-            .sheet(isPresented: $showMonthReceiptSheet, content: {
-                CategorySheet(transactions: transactions)
-                    .padding(.horizontal)
-                    .presentationDetents([.medium])
-                    .presentationBackgroundInteraction(.enabled)
-            })
         }
     }
 }
 
 #Preview {
-    TransactionForEachView(date: .iso8601(year: 2021, month: 5), sort: [SortDescriptor(\Transaction.date), SortDescriptor(\Transaction.shop?.name)], searchTerm: "")
+    TransactionForEachView(date: .iso8601(year: 2021, month: 5), span: .month, sort: [SortDescriptor(\Transaction.date), SortDescriptor(\Transaction.shop?.name)], searchTerm: "")
         .modelContainer(previewContainer)
         .monospaced()
 }

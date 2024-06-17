@@ -12,7 +12,7 @@ struct ShopsView: View {
         let sortOrder: SortOrder = sortOrder ? .forward : .reverse
         return switch sortKeyPathHelper {
             case 2: SortDescriptor(\.amount, order: sortOrder)
-            case 3: SortDescriptor(\.colorData, order: sortOrder)
+            // case 3: SortDescriptor(\.color, order: sortOrder)
             case 4: SortDescriptor(\.transactionsCount, order: sortOrder)
             default: SortDescriptor(\.name, order: sortOrder)
         }
@@ -39,6 +39,42 @@ struct ShopsView: View {
                     })
                 })
             })
+    }
+}
+
+struct ShopEditView: View {
+    @Binding var shop: Shop
+    
+    var body: some View {
+        VStack(content: {
+            Form(content: {
+                let nameBinding: Binding<String> = Binding(
+                    get: { shop.name },
+                    set: { if !$0.isEmpty { shop.name = $0 } }
+                )
+                let locationBinding: Binding<String> = Binding(
+                    get: { shop.address },
+                    set: { shop.address = $0 }
+                )
+                let colorBinding: Binding<Color> = Binding(
+                    get: { shop.color },
+                    set: {
+                        let newColor: Color.Resolved = $0.resolve(in: EnvironmentValues())
+                        if newColor.red > 0.8 && newColor.green > 0.8 && newColor.blue > 0.8 || newColor.red < 0.2 && newColor.green < 0.2 && newColor.blue < 0.2 { shop.color = nil }
+                        else { shop.color = $0 }
+                    }
+                )
+                
+                Section(content: {
+                    TextField("Shop", text: nameBinding)
+                    TextField("Location", text: locationBinding)
+                    ColorPicker("Color", selection: colorBinding)
+                })
+                
+                TransactionForEachView(sort: [SortDescriptor(\.date)], searchTerm: shop.name)
+                // TransactionsListView(date: .now, sort: [SortDescriptor(\.date)], searchTerm: shop.name)
+            })
+        })
     }
 }
 
@@ -69,15 +105,15 @@ struct ShopsListView: View {
                                     set: { if !$0.isEmpty { shop.name = $0 } }
                                 )
                                 let locationBinding: Binding<String> = Binding(
-                                    get: { shop.location ?? "" },
-                                    set: { shop.location = $0 }
+                                    get: { shop.address },
+                                    set: { shop.address = $0 }
                                 )
                                 let colorBinding: Binding<Color> = Binding(
-                                    get: { shop.colorTransient },
+                                    get: { shop.color },
                                     set: {
                                         let newColor: Color.Resolved = $0.resolve(in: EnvironmentValues())
-                                        if newColor.red > 0.8 && newColor.green > 0.8 && newColor.blue > 0.8 || newColor.red < 0.2 && newColor.green < 0.2 && newColor.blue < 0.2 { shop.colorData = nil }
-                                        else { shop.colorData = $0.hex }
+                                        if newColor.red > 0.8 && newColor.green > 0.8 && newColor.blue > 0.8 || newColor.red < 0.2 && newColor.green < 0.2 && newColor.blue < 0.2 { shop.color = nil }
+                                        else { shop.color = $0 }
                                     }
                                 )
                                 
@@ -87,7 +123,7 @@ struct ShopsListView: View {
                                     ColorPicker("Color", selection: colorBinding)
                                 })
                                 
-                                TransactionForEachView(date: .now, sort: [SortDescriptor(\.date)], searchTerm: shop.name)
+                                TransactionForEachView(sort: [SortDescriptor(\.date)], searchTerm: shop.name)
                                 // TransactionsListView(date: .now, sort: [SortDescriptor(\.date)], searchTerm: shop.name)
                             })
                         })
@@ -101,8 +137,8 @@ struct ShopsListView: View {
                                     .font(.caption)
                             })
                         }, label: {
-                            Text(shop.name).foregroundStyle(shop.colorTransient)
-                            if !shop.location.isEmpty { Text(shop.location) }
+                            Text(shop.name).foregroundStyle(shop.color)
+                            if !shop.address.isEmpty { Text(shop.address) }
                         })
                     })
                 // }, label: {
@@ -115,8 +151,8 @@ struct ShopsListView: View {
                 //                 .font(.caption)
                 //         })
                 //     }, label: {
-                //         Text(shop.name).foregroundStyle(shop.colorTransient)
-                //         if !shop.location.isEmpty { Text(shop.location) }
+                //         Text(shop.name).foregroundStyle(shop.color)
+                //         if !shop.address.isEmpty { Text(shop.address) }
                 //     })
                 // })
             })
